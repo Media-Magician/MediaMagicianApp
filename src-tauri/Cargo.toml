@@ -1,8 +1,8 @@
 [package]
 name = "media-magician"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.1.2"
+description = "The media magician app"
+authors = ["VioPaige"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -26,8 +26,6 @@ tauri-plugin-dialog = "2"
 ffmpeg-sidecar = "2.4.0"
 tauri-plugin-fs = "2"
 sha2 = "0.10.9"
-# ffmpeg-sys-next = { version = "8.0.1", default-features = false, features = ["static"] }
-# ffmpeg-next = { version = "8.0.0", default-features = false, features = ["build"] }
 ffmpeg-next = { version = "8.0.0", default-features = false, features = ["codec", "format", "filter", "software-resampling"] }
 
 [patch.crates-io]
