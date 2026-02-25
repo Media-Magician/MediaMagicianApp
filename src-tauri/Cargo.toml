@@ -27,6 +27,7 @@ ffmpeg-sidecar = "2.4.0"
 tauri-plugin-fs = "2"
 sha2 = "0.10.9"
 ffmpeg-next = { version = "8.0.0", default-features = false, features = ["codec", "format", "filter", "software-resampling"] }
+tauri-plugin-deep-link = "2"
 
 [patch.crates-io]
 ffmpeg-sys-next = { git = "https://github.com/VioPaige/rust-ffmpeg-sys.git", branch = "master" }

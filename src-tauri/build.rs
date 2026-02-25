@@ -10,8 +10,11 @@ fn main() {
                 // Fallback: hardcode your NDK path here
                 "/home/paige/Android/Sdk/ndk/29.0.14206865/".to_string()
             });
-        
-        println!("cargo:rustc-env=ANDROID_HOME={}", "/home/paige/Android/Sdk/");
+
+        println!(
+            "cargo:rustc-env=ANDROID_HOME={}",
+            "/home/paige/Android/Sdk/"
+        );
         println!("cargo:rustc-env=ANDROID_NDK_HOME={}", ndkHome);
         println!("cargo:rustc-env=ANDROID_NDK_HOME={}", ndkHome);
         println!("cargo:rustc-env=NDK_HOME={}", ndkHome);
@@ -33,7 +36,7 @@ fn main() {
             // "x86_64" => "assets/android/x86_64",
             _ => panic!("Unsupported architecture: {}", targetArch),
         };
-        
+
         // println!("cargo:rustc-env=FFMPEG_PKG_CONFIG=0");
         std::env::set_var("FFMPEG_PKG_CONFIG", "0");
         println!("cargo:rustc-env=FFMPEG_INCLUDE_DIR={}", ffmpegInclude);

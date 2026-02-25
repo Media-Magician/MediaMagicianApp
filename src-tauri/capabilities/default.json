@@ -20,15 +20,20 @@
     "fs:default",
     {
       "identifier": "fs:allow-read-file",
-      "allow": [{
-        "path": "$APPCACHE/*"
-      }]
+      "allow": [
+        {
+          "path": "$APPCACHE/*"
+        }
+      ]
     },
     {
       "identifier": "fs:allow-stat",
-      "allow": [{
-        "path": "$APPCACHE/*"
-      }]
-    }
+      "allow": [
+        {
+          "path": "$APPCACHE/*"
+        }
+      ]
+    },
+    "deep-link:default"
   ]
 }
