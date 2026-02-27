@@ -1,5 +1,7 @@
 use ffmpeg::{
-    codec, decoder, encoder, format, media, software::{resampling, scaling}, Dictionary, Rational, Rescale,
+    codec, decoder, encoder, format, media,
+    software::{resampling, scaling},
+    Dictionary, Rational, Rescale,
 };
 use ffmpeg_next as ffmpeg;
 
@@ -37,8 +39,7 @@ fn makeVideoEncoder(
         .add_stream(findCodec().unwrap())
         .map_err(|e| e.to_string())?;
 
-    let videoEncoderContext =
-        codec::context::Context::new_with_codec(findCodec().unwrap());
+    let videoEncoderContext = codec::context::Context::new_with_codec(findCodec().unwrap());
     let mut videoEncoder = videoEncoderContext
         .encoder()
         .video()
@@ -54,14 +55,27 @@ fn makeVideoEncoder(
     videoEncoder.set_frame_rate(Some(frameRate));
     videoEncoder.set_gop((frameRate.numerator() / frameRate.denominator()) as u32);
 
-    let videoEncoder = videoEncoder
-        .open()
-        .map_err(|e| e.to_string())?;
-    outputVideoStream.set_parameters(&videoEncoder);
+    #[cfg(target_os = "android")]
+    {
+        let videoEncoder = videoEncoder.open().map_err(|e| e.to_string())?;
+        outputVideoStream.set_parameters(&videoEncoder);
 
-    println!("Video encoder setup complete.");
+        return Ok(videoEncoder);
+    }
 
-    Ok(videoEncoder)
+    #[cfg(not(target_os = "android"))]
+    {
+        let mut dict = Dictionary::new();
+        dict.set("crf", &crf.unwrap_or(23).to_string());
+        dict.set("preset", "slow");
+        let videoEncoder = videoEncoder
+            .open_as_with(findCodec().unwrap(), dict)
+            .map_err(|e| e.to_string())?;
+        outputVideoStream.set_parameters(&videoEncoder);
+
+        println!("Video encoder setup complete.");
+        return Ok(videoEncoder);
+    }
 }
 
 fn makeAudioEncoder(
@@ -124,13 +138,13 @@ where
 {
     // Ensure ffmpeg is initialised
     ffmpeg::init().map_err(|e| e.to_string())?;
-    
+
     // Set up file access
     let mut ffIn = format::input(&input.path.to_string()).map_err(|e| e.to_string())?;
     let mut ffOut = format::output(&output).map_err(|e| e.to_string())?;
-    
+
     let duration = ffIn.duration() as f64 / ffmpeg::ffi::AV_TIME_BASE as f64;
-    
+
     // Get audio/video streams
     let inputVideo = ffIn
         .streams()
@@ -140,7 +154,7 @@ where
 
     let inputAudio = ffIn.streams().best(media::Type::Audio);
     let audioStreamIndex = inputAudio.as_ref().map(|s| s.index());
-    
+
     // Set up decoders
     let videoContextDecoder = codec::context::Context::from_parameters(inputVideo.parameters())
         .map_err(|e| e.to_string())?;
@@ -156,7 +170,8 @@ where
         input.stats.width,
         input.stats.height,
         scaling::flag::Flags::BILINEAR,
-    ).map_err(|e| e.to_string())?;
+    )
+    .map_err(|e| e.to_string())?;
 
     let mut audioDecoder = if let Some(audioStream) = inputAudio {
         let audioContextDecoder =
@@ -232,12 +247,14 @@ where
             while videoDecoder.receive_frame(&mut decodedFrame).is_ok() {
                 // Scale resolution
                 let mut scaledFrame = ffmpeg::util::frame::video::Video::empty();
-                videoScaler.run(&decodedFrame, &mut scaledFrame).map_err(|e| e.to_string())?;
+                videoScaler
+                    .run(&decodedFrame, &mut scaledFrame)
+                    .map_err(|e| e.to_string())?;
 
                 // Handle timestamping frames (and occasionally skipping in case of fps downscaling)
                 let rawPts = decodedFrame.timestamp().unwrap_or(lastTimestamp);
                 let pts = rawPts.rescale(stream.time_base(), openedVideoEncoder.time_base());
-                
+
                 if pts < nextFramePts {
                     continue;
                 }
@@ -471,19 +488,27 @@ where
 
     ffOut.write_trailer().map_err(|e| e.to_string())?;
 
-    Ok(format!("Successfully transcoded {} to {}", input.path.to_string(), output))
+    Ok(format!(
+        "Successfully transcoded {} to {}",
+        input.path.to_string(),
+        output
+    ))
 }
 
 pub fn getVideoStats(input: String) -> Result<VideoStats, String> {
     ffmpeg::init().map_err(|e| e.to_string())?;
 
     let ffIn = format::input(&input).map_err(|e| e.to_string())?;
-    let videoStream = ffIn.streams().best(media::Type::Video).ok_or("No video stream found")?;
-    let codecContext = ffmpeg::codec::context::Context::from_parameters(videoStream.parameters()).map_err(|e| e.to_string())?;
+    let videoStream = ffIn
+        .streams()
+        .best(media::Type::Video)
+        .ok_or("No video stream found")?;
+    let codecContext = ffmpeg::codec::context::Context::from_parameters(videoStream.parameters())
+        .map_err(|e| e.to_string())?;
     let decoder = codecContext.decoder().video().map_err(|e| e.to_string())?;
     let frameRate = videoStream.avg_frame_rate();
 
-    Ok(VideoStats { 
+    Ok(VideoStats {
         width: decoder.width(),
         height: decoder.height(),
         fps: (frameRate.numerator() as f64 / frameRate.denominator() as f64).round() as u32,

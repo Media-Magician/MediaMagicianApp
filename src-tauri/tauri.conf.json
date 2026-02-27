@@ -16,7 +16,7 @@
         "title": "MediaMagician",
         "width": 800,
         "height": 600,
-        "userAgent": "MediaMagicianApp/0.0.1"
+        "userAgent": "MediaMagicianApp/0.0.2"
       }
     ],
     "security": {
@@ -53,7 +53,10 @@
           "pathPrefix": ["/open/auth"],
           "appLink": true
         }
-      ]
+      ],
+      "desktop": {
+        "schemes": ["mediamagician"]
+      }
     }
   }
 }

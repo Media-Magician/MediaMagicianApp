@@ -1,0 +1,14 @@
+prefix=./build-mediamagician/arch-build/x86_64
+exec_prefix=${prefix}
+libdir=./build-mediamagician/arch-build/x86_64/lib
+includedir=./build-mediamagician/arch-build/x86_64/include
+
+Name: libswscale
+Description: FFmpeg image rescaling library
+Version: 8.1.100
+Requires: 
+Requires.private: libavutil >= 59.8.100
+Conflicts:
+Libs: -L${libdir}  -lswscale 
+Libs.private: -lm -latomic
+Cflags: -I${includedir}

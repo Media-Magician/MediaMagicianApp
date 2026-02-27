@@ -26,3 +26,6 @@ dist-ssr
 # secret
 signing/*
 keystore.properties
+
+# local installation shit
+pkg/MediaMagician

@@ -33,3 +33,14 @@ CXXFLAGS_aarch64-linux-android = { value = "--target=aarch64-linux-android24 --s
 CFLAGS = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
 CXXFLAGS = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
 
+
+
+
+
+
+# These env vars are for arch linux
+# FFMPEG_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/arch/x86-64", force = true, relative = false }
+# PKG_CONFIG_PATH = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/arch/x86-64", force = true, relative = false }
+
+# FFMPEG_STATIC="1"
+# CARGO_FEATURE_STATIC="1"

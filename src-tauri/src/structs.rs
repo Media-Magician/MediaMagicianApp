@@ -35,6 +35,6 @@ pub struct Video {
     pub name: String,
     pub id: String,
     pub crf: Option<u8>,
-    
+
     pub stats: VideoStats,
 }

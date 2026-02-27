@@ -1,9 +1,9 @@
-use sha2::{Digest, Sha256};
 use crate::structs::Progress;
+use sha2::{Digest, Sha256};
 use tauri::Emitter;
 
 #[tauri::command]
-pub fn sha256_digest(app: tauri::AppHandle, chunk: Vec<u8>, id: String) -> Result<Vec<u8>, String> {
+pub async fn sha256_digest(app: tauri::AppHandle, chunk: Vec<u8>, id: String) -> Result<Vec<u8>, String> {
     let _ = app.emit(
         "progress",
         Progress {

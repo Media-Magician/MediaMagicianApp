@@ -2,11 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![allow(non_snake_case)]
 
-// use ffmpeg_sidecar::download::auto_download;
-
 fn main() {
-    // #[cfg(not(target_os = "android"))]
-    // auto_download().expect("Failed to auto-download ffmpeg sidecar.");
+    std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
 
     media_magician_lib::run();
 }

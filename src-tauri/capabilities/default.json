@@ -20,6 +20,7 @@
     "fs:default",
     "fs:allow-appcache-read-recursive",
     "fs:allow-stat",
-    "deep-link:default"
+    "deep-link:default",
+    "deep-link:allow-register"
   ]
 }
