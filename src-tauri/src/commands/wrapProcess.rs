@@ -1,0 +1,73 @@
+use std::{fs::{self, create_dir_all}, path::Path};
+
+use tauri::{Emitter, Manager};
+
+use crate::{process::video::processVideo, structs::{Notification, Progress, Video}};
+
+#[tauri::command]
+pub async fn process_video(app: tauri::AppHandle, video: Video) -> Result<String, String> {
+    println!("Processing with video info: {:#?}", video);
+    let outputPath = format!("{}/videoOutput/{}",
+        app.path().app_cache_dir().unwrap().as_mut_os_str().to_str().unwrap().to_owned(),
+        video.name,
+    );
+    create_dir_all(Path::new(&outputPath).parent().unwrap()).map_err(|e| e.to_string())?;
+
+    let _ = app.emit(
+        "progress",
+        Progress {
+            r#type: "progress".into(),
+            stage: "processing".into(),
+            progress: Some(0.0),
+            id: video.id.clone(),
+        },
+    );
+    let result = processVideo(
+        &video,
+        outputPath.clone(),
+        |p| {
+            let _ = app.emit(
+                "progress",
+                Progress {
+                    r#type: "progress".into(),
+                    stage: "processing".into(),
+                    progress: Some(p),
+                    id: video.id.clone(),
+                },
+            );
+        },
+    );
+
+    let _ = app.emit(
+        "notify",
+        if result.is_err() {
+            Notification {
+                title: "Error".into(),
+                message: "Failed to process video file.".into(),
+            }
+        } else {
+            Notification {
+                title: "Success".into(),
+                message: "Video file processed successfully. Preparing to upload.".into(),
+            }
+        },
+    );
+
+    let _ = fs::remove_file(video.path.into_path().unwrap()).is_ok();
+    if result.is_err() {
+        println!("{}", result.err().unwrap());
+        return Err("Failed to process video file".into());
+    }
+
+    let _ = app.emit(
+        "progress",
+        Progress {
+            r#type: "progress".into(),
+            stage: "processing".into(),
+            progress: Some(1.0),
+            id: video.id.clone(),
+        },
+    );
+
+    return Ok(outputPath.into());
+}

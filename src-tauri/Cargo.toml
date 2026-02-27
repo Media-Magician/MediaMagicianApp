@@ -1,6 +1,6 @@
 [package]
-name = "media-magician"
-version = "0.1.2"
+name = "MediaMagician"
+version = "0.3.0"
 description = "The media magician app"
 authors = ["VioPaige"]
 edition = "2021"
@@ -26,8 +26,9 @@ tauri-plugin-dialog = "2"
 ffmpeg-sidecar = "2.4.0"
 tauri-plugin-fs = "2"
 sha2 = "0.10.9"
-ffmpeg-next = { version = "8.0.0", default-features = false, features = ["codec", "format", "filter", "software-resampling"] }
+ffmpeg-next = { version = "8.0.0", default-features = false, features = ["codec", "format", "filter", "software-resampling", "software-scaling"] }
 tauri-plugin-deep-link = "2"
+libc = "0.2.182"
 
 [patch.crates-io]
 ffmpeg-sys-next = { git = "https://github.com/VioPaige/rust-ffmpeg-sys.git", branch = "master" }

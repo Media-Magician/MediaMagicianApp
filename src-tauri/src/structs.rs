@@ -1,4 +1,5 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use tauri_plugin_fs::FilePath;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Progress {
@@ -13,4 +14,27 @@ pub struct Progress {
 pub struct Notification {
     pub title: String,
     pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PickedFile {
+    pub path: FilePath,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VideoStats {
+    pub width: u32,
+    pub height: u32,
+    pub fps: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Video {
+    pub path: FilePath,
+    pub name: String,
+    pub id: String,
+    pub crf: Option<u8>,
+    
+    pub stats: VideoStats,
 }

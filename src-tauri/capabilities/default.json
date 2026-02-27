@@ -18,22 +18,8 @@
     "opener:default",
     "dialog:default",
     "fs:default",
-    {
-      "identifier": "fs:allow-read-file",
-      "allow": [
-        {
-          "path": "$APPCACHE/*"
-        }
-      ]
-    },
-    {
-      "identifier": "fs:allow-stat",
-      "allow": [
-        {
-          "path": "$APPCACHE/*"
-        }
-      ]
-    },
+    "fs:allow-appcache-read-recursive",
+    "fs:allow-stat",
     "deep-link:default"
   ]
 }

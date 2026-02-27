@@ -1,0 +1,85 @@
+use std::io::Write;
+
+use tauri::{Emitter, Manager};
+use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_fs::{FilePath::Url, FsExt};
+use crate::{process::video::getVideoStats, structs::{PickedFile, Progress, Video}};
+
+fn genericPickFile(app: &tauri::AppHandle) -> Result<PickedFile, String> {
+    let fPath = app.dialog().file().blocking_pick_file();
+    if let Some(filePath) = fPath {
+        let resolver = app.path();
+        let name = match filePath {
+            Url(ref url) => resolver.file_name(url.as_str()).unwrap(),
+            _ => resolver
+                .file_name(filePath.as_path().unwrap().to_str().unwrap())
+                .unwrap(),
+        };
+    
+        Ok(PickedFile {
+            path: filePath,
+            name,
+        })
+    } else {
+        return Err("No file selected".into());
+    }
+}
+
+#[cfg(target_os = "android")]
+fn androidPickFile(app: tauri::AppHandle, id: String) -> Result<PickedFile, String> {
+    let originalFile = genericPickFile(&app)?;
+    let _ = app.emit(
+        "progress",
+        Progress {
+            r#type: "completed".into(),
+            stage: "copying".into(),
+            progress: None,
+            id,
+        },
+    );
+
+    let file = app.fs().read(originalFile.path.clone()).map_err(|_| "Failed to read file.")?;
+
+    let targetPath = app.path().app_cache_dir().unwrap().join(&originalFile.name);
+    let mut targetFile = std::fs::OpenOptions::new().write(true).create(true).open(targetPath.clone()).map_err(|_| "Failed to create file copy for processing.")?;
+
+    targetFile.write_all(&file).map_err(|_| "Failed to write to copy file for processing.")?;
+    targetFile.flush().map_err(|_| "Failed to flush copy file for processing.")?;
+
+    Ok(PickedFile {
+        path: targetPath.into(),
+        name: originalFile.name,
+    })
+}
+
+
+#[tauri::command]
+pub fn pick_file(app: tauri::AppHandle, id: String) -> Result<Video, String> {
+    #[cfg(target_os = "android")]
+    {
+        let pickedFile = androidPickFile(app, id.clone())?;
+        let videoStats = getVideoStats(pickedFile.path.to_string())?;
+
+        return Ok(Video {
+            path: pickedFile.path,
+            name: pickedFile.name,
+            id: id,
+            stats: videoStats,
+            crf: Some(23),
+        })
+    }
+
+    #[cfg(not(target_os = "android"))]
+    {
+        let pickedFile = genericPickFile(&app)?;
+        let videoStats = getVideoStats(pickedFile.path.to_string())?;
+
+        return Ok(Video {
+            path: pickedFile.path,
+            name: pickedFile.name,
+            id: id,
+            stats: videoStats,
+            crf: Some(23),
+        })
+    }
+}

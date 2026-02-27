@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "MediaMagician",
-  "version": "0.1.2",
+  "version": "0.3.0",
   "identifier": "com.mediamagician.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -44,6 +44,12 @@
         {
           "scheme": ["https"],
           "host": "beta.mediamagician.app",
+          "pathPrefix": ["/open/auth"],
+          "appLink": true
+        },
+        {
+          "scheme": ["http", "https"],
+          "host": "localtesting.mediamagician.app",
           "pathPrefix": ["/open/auth"],
           "appLink": true
         }
