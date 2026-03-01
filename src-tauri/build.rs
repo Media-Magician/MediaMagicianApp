@@ -87,5 +87,26 @@ fn main() {
     //     println!("cargo:rustc-link-lib=dylib=x264");
     // }
 
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    {
+        let ffmpegInclude = "C:/E/Programming/GitHub/MediaMagicianApp/src-tauri/assets/windows/x86_64/include";
+        let ffmpegLib = "C:/E/Programming/GitHub/MediaMagicianApp/src-tauri/assets/windows/x86_64/lib";
+
+        eprintln!("FFmpeg lib path: {}", ffmpegLib);
+        eprintln!("Files in lib dir: {:?}", std::fs::read_dir(&ffmpegLib).map(|d| d.map(|e| e.unwrap().file_name()).collect::<Vec<_>>()));
+
+        std::env::set_var("FFMPEG_PKG_CONFIG", "0");
+        println!("cargo:rustc-env=FFMPEG_INCLUDE_DIR={}", ffmpegInclude);
+        println!("cargo:rustc-env=FFMPEG_LIB_DIR={}", ffmpegLib);
+
+        println!("cargo:rustc-link-search=native={}", ffmpegLib);
+        println!("cargo:rustc-link-lib=dylib=avcodec");
+        println!("cargo:rustc-link-lib=dylib=avfilter");
+        println!("cargo:rustc-link-lib=dylib=avformat");
+        println!("cargo:rustc-link-lib=dylib=avutil");
+        println!("cargo:rustc-link-lib=dylib=swscale");
+        println!("cargo:rustc-link-lib=dylib=swresample");
+    }
+
     tauri_build::build();
 }
