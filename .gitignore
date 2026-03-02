@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist
+docker-dist
+repo
 dist-ssr
 *.local
 

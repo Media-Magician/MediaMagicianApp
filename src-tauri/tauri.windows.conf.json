@@ -16,7 +16,8 @@
         "title": "MediaMagician",
         "width": 800,
         "height": 600,
-        "userAgent": "MediaMagicianApp/0.0.2"
+        "userAgent": "MediaMagicianApp/0.0.2",
+        "dragDropEnabled": true
       }
     ],
     "security": {

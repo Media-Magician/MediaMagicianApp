@@ -1,0 +1,46 @@
+id: com.mediamagician.app
+runtime: org.gnome.Platform
+runtime-version: '48'
+sdk: org.gnome.Sdk
+command: mediamagician
+add-extensions:
+  org.freedesktop.Platform.ffmpeg-full:
+    directory: lib/ffmpeg
+    version: '24.08'
+    add-ld-path: .
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --filesystem=home
+  - --talk-name=org.freedesktop.portal.Desktop
+
+modules:
+  - name: bzip2
+    buildsystem: simple
+    build-commands:
+      - make -f Makefile-libbz2_so
+      - install -Dm755 libbz2.so.1.0.8 /app/lib/libbz2.so.1.0.8
+      - ln -s /app/lib/libbz2.so.1.0.8 /app/lib/libbz2.so.1.0
+    sources:
+      - type: archive
+        url: https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz
+        sha256: ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269
+
+  - name: mediamagician
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/ffmpeg
+      - install -Dm755 MediaMagician-0.3.0 /app/bin/mediamagician
+      - install -Dm644 com.mediamagician.app.desktop /app/share/applications/com.mediamagician.app.desktop
+    sources:
+      - type: file
+        url: https://github.com/Media-Magician/Apps/releases/download/v0.3.0-beta/MediaMagician_0.3.0_flatpak
+        sha256: b8b569fe90f6a3dbc3dda13f7551afd4409965ff311d76cd819414f362bc4347
+        dest-filename: MediaMagician-0.3.0
+        only-arches:
+          - x86_64
+      - type: file
+        path: com.mediamagician.app.desktop

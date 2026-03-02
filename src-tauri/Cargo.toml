@@ -23,7 +23,6 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-dialog = "2"
-ffmpeg-sidecar = "2.4.0"
 tauri-plugin-fs = "2"
 sha2 = "0.10.9"
 ffmpeg-next = { version = "8.0.0", default-features = false, features = ["codec", "format", "filter", "software-resampling", "software-scaling"] }
@@ -31,8 +30,8 @@ tauri-plugin-deep-link = "2"
 libc = "0.2.182"
 
 [patch.crates-io]
-# ffmpeg-sys-next = { git = "https://github.com/Media-Magician/rust-ffmpeg-sys.git", branch = "main" }
-ffmpeg-sys-next = { path = "C:\\E\\Programming\\GitHub\\rust-ffmpeg-sys" }
+ffmpeg-sys-next = { git = "https://github.com/Media-Magician/rust-ffmpeg-sys.git", branch = "main" }
+# ffmpeg-sys-next = { path = "C:\\E\\Programming\\GitHub\\rust-ffmpeg-sys" }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }

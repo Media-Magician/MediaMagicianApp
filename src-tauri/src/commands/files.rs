@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, str::FromStr};
 
 use crate::{
     process::video::getVideoStats,
@@ -8,8 +8,12 @@ use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_fs::FilePath::{self, Url};
 
-fn genericPickFile(app: &tauri::AppHandle) -> Result<PickedFile, String> {
-    let fPath = app.dialog().file().blocking_pick_file();
+fn genericPickFile(app: &tauri::AppHandle, path: Option<String>) -> Result<PickedFile, String> {
+    let fPath = if path.is_some() {
+        Some(FilePath::from_str(&path.unwrap()).unwrap())
+    } else {
+        app.dialog().file().blocking_pick_file()
+    };
     if let Some(filePath) = fPath {
         let resolver = app.path();
         let name = match filePath {
@@ -35,7 +39,7 @@ fn androidPickFile(app: tauri::AppHandle, id: String) -> Result<PickedFile, Stri
     use tauri_plugin_fs::FsExt;
     use crate::structs::Progress;
 
-    let originalFile = genericPickFile(&app)?;
+    let originalFile = genericPickFile(&app, None)?;
     let _ = app.emit(
         "progress",
         Progress {
@@ -72,7 +76,7 @@ fn androidPickFile(app: tauri::AppHandle, id: String) -> Result<PickedFile, Stri
 }
 
 #[tauri::command]
-pub async fn pick_file(app: tauri::AppHandle, id: String) -> Result<Video, String> {
+pub async fn pick_file(app: tauri::AppHandle, id: String, path: Option<String>) -> Result<Video, String> {
     println!("Picking file");
 
     #[cfg(target_os = "android")]
@@ -91,7 +95,7 @@ pub async fn pick_file(app: tauri::AppHandle, id: String) -> Result<Video, Strin
 
     #[cfg(not(target_os = "android"))]
     {
-        let pickedFile = genericPickFile(&app)?;
+        let pickedFile = genericPickFile(&app, path)?;
         let videoStats = getVideoStats(pickedFile.path.to_string())?;
 
         return Ok(Video {
