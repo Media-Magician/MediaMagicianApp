@@ -19,6 +19,19 @@ Building using docker (this needs to be run in the directory above this one, and
 ```
 docker build -f docker-building/linux/Dockerfile -t mediamagician-builder .
 ```
+after which we can run `extract.sh` (in this project root) to extract things we need from the container into the `docker-dist` directory.
+We can then run the following to build the flatpak based on our `com.mediamagician.app.yml` file:
+```
+flatpak-builder --force-clean --user --install-deps-from=flathub --repo=repo --install builddir com.mediamagician.app.yml
+```
+and finally to test/run the app:
+```
+flatpak run com.mediamagician.app
+```
+and to bundle into single file:
+```
+flatpak build-bundle repo MediaMagician.flatpak com.mediamagician.app
+```
 
 ## Windows
 When building (on windows), you might need to set a clang var (batch example):

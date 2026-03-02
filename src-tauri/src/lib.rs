@@ -43,24 +43,32 @@ pub fn run() {
         .setup(|app| {
             // Clean up files that may have stayed from last time
             let _ = cleanCacheDir(app.path().app_cache_dir().unwrap());
-
+            eprintln!("cleaned cache dir");
+            
             // Register all deep links
+            // #[cfg(any(windows, target_os = "linux"))]
+            // app.deep_link().register_all()?;
             #[cfg(any(windows, target_os = "linux"))]
-            app.deep_link().register_all()?;
-
+            if let Err(e) = app.deep_link().register_all() {
+                eprintln!("Warning: failed to register deep links: {}", e);
+            }
+            eprintln!("registered deep links");
+            
             // Check whether there is a 'current' deep link
             let start_urls = app.deep_link().get_current()?;
             if let Some(urls) = start_urls {
-                println!("deep link URLs: {:?}", urls);
+                eprintln!("deep link URLs: {:?}", urls);
             }
-
+            eprintln!("got start urls");
+            
             // Log deep link triggers
             app.deep_link().on_open_url(|event| {
                 let urls = event.urls();
                 for url in urls {
-                    println!("URL: {}", url);
+                    eprintln!("URL: {}", url);
                 }
             });
+            eprintln!("registered deep link callback");
 
             Ok(())
         })
@@ -75,4 +83,6 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+
+    eprintln!("After build");
 }

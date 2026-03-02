@@ -29,16 +29,28 @@ modules:
         url: https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz
         sha256: ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269
 
+  - name: x264
+    buildsystem: autotools
+    config-opts:
+      - --enable-shared
+      - --disable-static
+      - --disable-cli
+    sources:
+      - type: git
+        url: https://code.videolan.org/videolan/x264.git
+        branch: stable
+
   - name: mediamagician
     buildsystem: simple
     build-commands:
       - mkdir -p /app/lib/ffmpeg
       - install -Dm755 MediaMagician-0.3.0 /app/bin/mediamagician
       - install -Dm644 com.mediamagician.app.desktop /app/share/applications/com.mediamagician.app.desktop
+      - update-desktop-database /app/share/applications
     sources:
       - type: file
-        url: https://github.com/Media-Magician/Apps/releases/download/v0.3.0-beta/MediaMagician_0.3.0_flatpak
-        sha256: b8b569fe90f6a3dbc3dda13f7551afd4409965ff311d76cd819414f362bc4347
+        url: https://github.com/Media-Magician/Apps/releases/download/v0.3.0-beta/MediaMagician_flatpak
+        sha256: 6a25afbe0cb9e7a902237b712c761744c5d04b92b86647f02dabf25270ac2622
         dest-filename: MediaMagician-0.3.0
         only-arches:
           - x86_64

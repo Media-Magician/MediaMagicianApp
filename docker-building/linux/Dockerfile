@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     libbz2-dev liblzma-dev \
     libva-dev libvdpau-dev libdrm-dev libx11-dev \
     && rm -rf /var/lib/apt/lists/*
+RUN apt-get remove -y libx264-dev libx264-163 || true
 
 # Node 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
@@ -44,6 +45,17 @@ RUN cargo install tauri-cli
 # Copy sources
 COPY ${FFMPEG_SRC} /build/ffmpeg
 COPY ${APP_SRC} /build/app
+
+# Add x264 source
+RUN git clone https://code.videolan.org/videolan/x264.git /build/x264 && \
+    cd /build/x264 && \
+    git checkout stable && \
+    ./configure --enable-shared --disable-static --disable-cli && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
+
+RUN ls /usr/local/lib/libx264*
 
 # Build FFmpeg
 WORKDIR /build/ffmpeg
@@ -78,16 +90,20 @@ ENV FFMPEG_DIR=/build/app/src-tauri/assets/ubuntu/x86_64
 ENV PKG_CONFIG_PATH=/build/app/src-tauri/assets/ubuntu/x86_64
 ENV FFMPEG_STATIC="1"
 ENV CARGO_FEATURE_STATIC="1"
+ENV LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ENV RUSTFLAGS="-L /usr/local/lib"
 
 
 RUN npm install
-RUN cargo tauri build
+RUN cargo tauri build --debug
 
 # Copy output binary
 # RUN cp src-tauri/target/release/MediaMagician /MediaMagician
-RUN mkdir /tmp/bundle && \
-    cp src-tauri/target/release/MediaMagician /tmp/MediaMagician && \
-    cp -r src-tauri/target/release/bundle/* /tmp/bundle && \
+RUN mkdir /tmp/bundle && mkdir /tmp/bundle/deb && mkdir /tmp/bundle/rpm && \
+    cp src-tauri/target/debug/MediaMagician /tmp/MediaMagician && \
+    cp -r src-tauri/target/debug/bundle/deb/* /tmp/bundle/deb && \
+    cp -r src-tauri/target/debug/bundle/rpm/* /tmp/bundle/rpm && \
     rm -rf src-tauri/target
 
 FROM scratch
