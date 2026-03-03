@@ -1,6 +1,6 @@
 use std::{
     fs::create_dir_all,
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use tauri::{Emitter, Manager};
@@ -13,6 +13,7 @@ use crate::{
 #[tauri::command]
 pub async fn process_video(app: tauri::AppHandle, video: Video) -> Result<String, String> {
     println!("Processing with video info: {:#?}", video);
+    let outputFilePath = PathBuf::from(&video.name);
     let outputPath = format!(
         "{}/videoOutput/{}",
         app.path()
@@ -22,7 +23,7 @@ pub async fn process_video(app: tauri::AppHandle, video: Video) -> Result<String
             .to_str()
             .unwrap()
             .to_owned(),
-        video.name,
+        outputFilePath.with_extension("mp4").to_str().to_owned().unwrap(),
     );
     create_dir_all(Path::new(&outputPath).parent().unwrap()).map_err(|e| e.to_string())?;
 

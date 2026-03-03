@@ -20,6 +20,14 @@ fn findCodec() -> Option<codec::codec::Codec> {
     return encoder::find_by_name("libx264");
 }
 
+fn mapWidthHeight(width: u32, height: u32) -> (u32, u32) {
+    #[cfg(target_os = "android")]
+    return ((width + 15) & !15, (height + 15) & !15);
+
+    #[cfg(not(target_os = "android"))]
+    return (width, height);
+}
+
 fn makeVideoEncoder(
     ffOut: &mut format::context::Output,
     width: u32,
@@ -45,8 +53,7 @@ fn makeVideoEncoder(
         .video()
         .map_err(|e| e.to_string())?;
 
-    let alignedWidth = (width + 15) & !15;
-    let alignedHeight = (height + 15) & !15;
+    let (alignedWidth, alignedHeight) = mapWidthHeight(width, height);
     videoEncoder.set_width(alignedWidth);
     videoEncoder.set_height(alignedHeight);
 
