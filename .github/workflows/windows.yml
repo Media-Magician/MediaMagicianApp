@@ -66,6 +66,7 @@ jobs:
           update: true
           install: >-
             mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-binutils
             mingw-w64-x86_64-nasm
             mingw-w64-x86_64-x264
             mingw-w64-x86_64-pkg-config
@@ -83,7 +84,6 @@ jobs:
             --prefix=$PREFIX \
             --arch=x86_64 \
             --target-os=mingw32 \
-            --cross-prefix=x86_64-w64-mingw32- \
             --disable-shared \
             --enable-static \
             --enable-small \
