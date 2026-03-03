@@ -46,12 +46,18 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cargo/bin/cargo-tauri.exe
-          key: tauri-cli-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          key: tauri-cli-${{ runner.os }}-1
           restore-keys: |
             tauri-cli-${{ runner.os }}-
 
       - name: Install Tauri CLI
-        run: cargo install tauri-cli
+        shell: powershell
+        run: |
+          if (-not (Test-Path "$env:USERPROFILE\.cargo\bin\cargo-tauri.exe")) {
+            cargo install tauri-cli
+          } else {
+            Write-Host "Tauri CLI already cached, skipping install"
+          }
 
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
