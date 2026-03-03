@@ -38,6 +38,18 @@ jobs:
         with:
           workspaces: app/src-tauri
 
+      - name: Cache Tauri CLI
+        id: cache-tauri
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin/cargo-tauri.exe
+          key: tauri-cli-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            tauri-cli-${{ runner.os }}-
+
       - name: Install Tauri CLI
         run: cargo install tauri-cli
 
@@ -59,6 +71,7 @@ jobs:
         env:
           PREFIX: ${{ github.workspace }}/app/src-tauri/assets/windows/x86_64
         run: |
+          ./configure \
           make distclean || true
           ./configure \
             --prefix=$PREFIX \
