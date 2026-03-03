@@ -1,0 +1,103 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:  # Manual trigger for now, easy to add push/tag later
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@v4
+        with:
+          repository: Media-Magician/MediaMagicianApp
+          token: ${{ secrets.PAT_TOKEN }}
+          path: app
+
+      - name: Checkout FFmpeg
+        uses: actions/checkout@v4
+        with:
+          repository: Media-Magician/ffmpeg
+          token: ${{ secrets.PAT_TOKEN }}
+          path: ffmpeg
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli
+
+      - name: Setup MSYS2 (for FFmpeg build tools)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-nasm
+            mingw-w64-x86_64-x264
+            mingw-w64-x86_64-pkg-config
+            make
+            diffutils
+
+      - name: Build FFmpeg
+        shell: msys2 {0}
+        working-directory: ffmpeg
+        env:
+          PREFIX: ${{ github.workspace }}/app/src-tauri/assets/windows/x86_64
+        run: |
+          make distclean || true
+          ./configure \
+            --prefix=$PREFIX \
+            --arch=x86_64 \
+            --target-os=win64 \
+            --disable-shared \
+            --enable-static \
+            --enable-small \
+            --disable-programs \
+            --disable-doc \
+            --disable-debug \
+            --disable-avdevice \
+            --disable-postproc \
+            --enable-protocol=file \
+            --disable-network \
+            --enable-libx264 \
+            --enable-gpl \
+            --extra-cflags="-fPIC"
+          make -j$(nproc)
+          make install
+
+      - name: Install frontend dependencies
+        working-directory: app
+        run: npm install
+
+      - name: Build app
+        working-directory: app
+        env:
+          FFMPEG_ASSET_PATH: assets/windows/x86_64
+          FFMPEG_DIR: ${{ github.workspace }}/app/src-tauri/assets/windows/x86_64
+          FFMPEG_STATIC: "1"
+          CARGO_FEATURE_STATIC: "1"
+        run: cargo tauri build
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaMagician-windows
+          path: |
+            app/src-tauri/target/release/bundle/msi/*.msi
+            app/src-tauri/target/release/bundle/nsis/*.exe
+          retention-days: 7
