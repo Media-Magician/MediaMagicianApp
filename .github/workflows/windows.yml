@@ -53,30 +53,31 @@ jobs:
       - name: Install Tauri CLI
         run: cargo install tauri-cli
 
-      - name: Setup MSYS2 (for FFmpeg build tools)
+      - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
           install: >-
+            mingw-w64-x86_64-gcc
             mingw-w64-x86_64-nasm
             mingw-w64-x86_64-x264
             mingw-w64-x86_64-pkg-config
-            make
             diffutils
+            make
 
       - name: Build FFmpeg
         shell: msys2 {0}
         working-directory: ffmpeg
-        env:
-          PREFIX: ${{ github.workspace }}/app/src-tauri/assets/windows/x86_64
         run: |
-          ./configure \
+          export PREFIX=$(cygpath -u "${{ github.workspace }}")/app/src-tauri/assets/windows/x86_64
+          export PATH="/mingw64/bin:$PATH"
           make distclean || true
           ./configure \
             --prefix=$PREFIX \
             --arch=x86_64 \
-            --target-os=win64 \
+            --target-os=mingw32 \
+            --cross-prefix=x86_64-w64-mingw32- \
             --disable-shared \
             --enable-static \
             --enable-small \
