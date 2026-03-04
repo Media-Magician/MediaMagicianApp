@@ -46,11 +46,11 @@ split-debuginfo = "packed"
 
 
 # ARCH LINUX ENV VARS
-FFMPEG_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/arch/x86-64", force = true, relative = false }
-PKG_CONFIG_PATH = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/arch/x86-64", force = true, relative = false }
+# FFMPEG_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/arch/x86-64", force = true, relative = false }
+# PKG_CONFIG_PATH = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/arch/x86-64", force = true, relative = false }
 
-FFMPEG_STATIC="1"
-CARGO_FEATURE_STATIC="1"
+# FFMPEG_STATIC="1"
+# CARGO_FEATURE_STATIC="1"
 
 
 
