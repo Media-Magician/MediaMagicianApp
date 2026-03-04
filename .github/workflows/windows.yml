@@ -43,9 +43,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ~/.cargo/bin/cargo-tauri.exe
+            C:\Users\runneradmin\.cargo\registry
+            C:\Users\runneradmin\.cargo\git
+            C:\Users\runneradmin\.cargo\bin\cargo-tauri.exe
           key: tauri-cli-${{ runner.os }}-1
           restore-keys: |
             tauri-cli-${{ runner.os }}-
@@ -53,7 +53,7 @@ jobs:
       - name: Install Tauri CLI
         shell: powershell
         run: |
-          if (-not (Test-Path "$env:USERPROFILE\.cargo\bin\cargo-tauri.exe")) {
+          if (-not (Test-Path "C:\Users\runneradmin\.cargo\bin\cargo-tauri.exe")) {
             cargo install tauri-cli
           } else {
             Write-Host "Tauri CLI already cached, skipping install"
@@ -107,10 +107,11 @@ jobs:
       - name: Build app
         working-directory: app
         env:
-          FFMPEG_ASSET_PATH: assets/windows/x86_64
+          FFMPEG_ASSET_PATH: ${{ github.workspace }}/app/src-tauri/assets/windows/x86_64
           FFMPEG_DIR: ${{ github.workspace }}/app/src-tauri/assets/windows/x86_64
           FFMPEG_STATIC: "1"
           CARGO_FEATURE_STATIC: "1"
+          BINDGEN_EXTRA_CLANG_ARGS: "--target=x86_64-w64-mingw32 -isystem C:\\msys64\\mingw64\\include -isystem C:\\msys64\\mingw64\\x86_64-w64-mingw32\\include"
         run: cargo tauri build
 
       - name: Upload installer
