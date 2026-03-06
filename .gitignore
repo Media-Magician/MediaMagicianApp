@@ -1,0 +1,60 @@
+.DS_Store
+node_modules
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+dist
+docker-dist
+repo
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.vscode
+
+# secret
+signing/*
+keystore.properties
+
+# local installation shit
+pkg/MediaMagician
+
+# cef n shit
+locales/
+*.pak
+chrome_sandbox
+icudtl.dat
+libcef.so
+libEGL.so
+libGLESv2.so
+libvk_swiftshader.so
+libvulkan.so.1
+buildplace/MediaMagician
+buildplace/MediaMagician.flatpak
+v8_context_snapshot.bin
+vk_swiftshader_icd.json
+cef_src/
+

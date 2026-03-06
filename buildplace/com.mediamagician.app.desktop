@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=MediaMagician
+Exec=mediamagician %u
+Icon=com.mediamagician.app
+Type=Application
+Categories=Network;
+MimeType=x-scheme-handler/mediamagician;

@@ -1,0 +1,14 @@
+prefix=./build-mediamagician/arch-build/x86_64
+exec_prefix=${prefix}
+libdir=./build-mediamagician/arch-build/x86_64/lib
+includedir=./build-mediamagician/arch-build/x86_64/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 61.3.100
+Requires: 
+Requires.private: libswresample >= 5.1.100, libavutil >= 59.8.100
+Conflicts:
+Libs: -L${libdir}  -lavcodec 
+Libs.private: -pthread -lm -latomic -llzma -lx264 -lz -lva
+Cflags: -I${includedir}

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "MediaMagician",
+  "version": "0.3.0",
+  "identifier": "com.mediamagician.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "MediaMagician",
+        "width": 800,
+        "height": 600,
+        "userAgent": "MediaMagicianApp/0.0.2",
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "android": {
+      "autoIncrementVersionCode": false,
+      "minSdkVersion": 24
+    },
+    "resources": {
+      "assets/windows/x86-64/bin/*.dll": "",
+      "assets/windows/x86-64/*.dll": ""
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "mobile": [
+        {
+          "scheme": ["https"],
+          "host": "beta.mediamagician.app",
+          "pathPrefix": ["/open/auth"],
+          "appLink": true
+        },
+        {
+          "scheme": ["http", "https"],
+          "host": "localtesting.mediamagician.app",
+          "pathPrefix": ["/open/auth"],
+          "appLink": true
+        }
+      ],
+      "desktop": {
+        "schemes": ["mediamagician"]
+      }
+    }
+  }
+}

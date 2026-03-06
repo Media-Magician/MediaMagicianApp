@@ -1,0 +1,26 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": [
+    "main"
+  ],
+  "remote": {
+    "urls": [
+      "http://localhost:*/*",
+      "https://*.mediamagician.app/*",
+      "http://192.168.178.236:5173/*"
+    ]
+  },
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "opener:default",
+    "dialog:default",
+    "fs:default",
+    "fs:allow-appcache-read-recursive",
+    "fs:allow-stat",
+    "deep-link:default",
+    "deep-link:allow-register"
+  ]
+}

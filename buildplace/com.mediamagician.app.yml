@@ -1,0 +1,132 @@
+id: com.mediamagician.app
+runtime: org.gnome.Platform
+runtime-version: '48'
+sdk: org.gnome.Sdk
+command: mediamagician-cef-wrapper
+add-extensions:
+  org.freedesktop.Platform.ffmpeg-full:
+    directory: lib/ffmpeg
+    version: '24.08'
+    add-ld-path: .
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --filesystem=home
+  - --talk-name=org.freedesktop.portal.Desktop
+  - --system-talk-name=org.freedesktop.portal.Desktop
+  - --filesystem=xdg-run/gvfsd
+  - --talk-name=org.gtk.vfs.*
+  - --talk-name=org.gtk.vfs
+  - --allow=devel
+  - --env=ZYPAK_ZYGOTE_STRATEGY=direct
+  - --allow=multiarch
+
+modules:
+  - name: zypak
+    sources:
+      - type: git
+        url: https://github.com/refi64/zypak
+        tag: v2025.09
+
+  - name: bzip2
+    buildsystem: simple
+    build-commands:
+      - make -f Makefile-libbz2_so
+      - install -Dm755 libbz2.so.1.0.8 /app/lib/libbz2.so.1.0.8
+      - ln -s /app/lib/libbz2.so.1.0.8 /app/lib/libbz2.so.1.0
+    sources:
+      - type: archive
+        url: https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz
+        sha256: ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269
+
+  - name: x264
+    buildsystem: autotools
+    config-opts:
+      - --enable-shared
+      - --disable-static
+      - --disable-cli
+    sources:
+      - type: git
+        url: https://code.videolan.org/videolan/x264.git
+        branch: stable
+
+  - name: mediamagician
+    buildsystem: simple
+    build-commands:
+      # ffmpeg lib setup
+      - mkdir -p /app/lib/ffmpeg
+
+      # CEF libs
+      - install -Dm755 libcef.so /app/lib/libcef.so
+      - install -Dm755 libEGL.so /app/lib/libEGL.so
+      - install -Dm755 libGLESv2.so /app/lib/libGLESv2.so
+      - install -Dm755 libvulkan.so.1 /app/lib/libvulkan.so.1
+      - install -Dm755 libvk_swiftshader.so /app/lib/libvk_swiftshader.so
+      - install -Dm644 vk_swiftshader_icd.json /app/lib/vk_swiftshader_icd.json
+      - install -Dm644 v8_context_snapshot.bin /app/bin/v8_context_snapshot.bin
+      - install -Dm644 v8_context_snapshot.bin /app/lib/v8_context_snapshot.bin
+      - install -Dm644 icudtl.dat /app/bin/icudtl.dat
+      - install -Dm644 icudtl.dat /app/lib/icudtl.dat
+      - install -Dm644 chrome_sandbox /app/bin/chrome_sandbox
+      - install -Dm644 chrome_100_percent.pak /app/lib/chrome_100_percent.pak
+      - install -Dm644 chrome_200_percent.pak /app/lib/chrome_200_percent.pak
+      - install -Dm644 resources.pak /app/lib/resources.pak
+      - cp -r locales /app/bin/locales
+
+      # install zypak wrapper
+      - install -Dm755 zypak-wrapper.sh /app/bin/mediamagician-cef-wrapper
+
+      # install mediamagician
+      - install -Dm755 MediaMagician-0.3.0 /app/bin/mediamagician
+      - install -Dm644 com.mediamagician.app.desktop /app/share/applications/com.mediamagician.app.desktop
+      - install -Dm644 com.mediamagician.app.png /app/share/icons/hicolor/256x256/apps/com.mediamagician.app.png
+      - install -Dm644 com.mediamagician.app.metainfo.xml /app/share/metainfo/com.mediamagician.app.metainfo.xml
+
+      # register in apps db
+      - update-desktop-database /app/share/applications
+    build-options:
+      env:
+        ZYPAK_ZYGOTE_STRATEGY: direct
+    sources:
+      - type: file
+        path: MediaMagician  # your locally built binary
+        dest-filename: MediaMagician-0.3.0
+      - type: file
+        path: com.mediamagician.app.desktop
+      - type: file
+        path: com.mediamagician.app.metainfo.xml
+      - type: file
+        path: com.mediamagician.app.png
+
+      - type: file
+        path: libcef.so
+      - type: file
+        path: libEGL.so
+      - type: file
+        path: libGLESv2.so
+      - type: file
+        path: libvulkan.so.1
+      - type: file
+        path: libvk_swiftshader.so
+      - type: file
+        path: vk_swiftshader_icd.json
+      - type: file
+        path: v8_context_snapshot.bin
+      - type: file
+        path: icudtl.dat
+      - type: file
+        path: chrome_100_percent.pak
+      - type: file
+        path: chrome_200_percent.pak
+      - type: file
+        path: resources.pak
+      - type: dir
+        path: locales
+        dest: locales
+      - type: file
+        path: zypak-wrapper.sh
+      - type: file
+        path: chrome_sandbox

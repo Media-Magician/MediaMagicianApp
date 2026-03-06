@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.mediamagician.app</id>
+  <name>MediaMagician</name>
+  <summary>MediaMagician is an application for sharing videos (and other files)!</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>MediaMagician is an application for sharing videos (and other files)!</p>
+  </description>
+  <launchable type="desktop-id">com.mediamagician.app.desktop</launchable>
+  <url type="homepage">https://beta.mediamagician.com</url>
+  <releases>
+    <release version="0.4.0" date="2026-03-06"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>
