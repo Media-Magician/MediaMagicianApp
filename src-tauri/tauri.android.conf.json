@@ -36,6 +36,23 @@
     "android": {
       "autoIncrementVersionCode": false,
       "minSdkVersion": 24
+    },
+    "windows": {
+      "allowDowngrades": true,
+      "certificateThumbprint": null,
+      "digestAlgorithm": null,
+      "nsis": null,
+      "signCommand": null,
+      "timestampUrl": null,
+      "tsp": false,
+      "webviewInstallMode": {
+        "silent": true,
+        "type": "downloadBootstrapper"
+      },
+      "wix": {
+        "bannerPath": "WixAssets/Banner.bmp",
+        "dialogImagePath": "WixAssets/DialogImage.bmp"
+      }
     }
   },
   "plugins": {
