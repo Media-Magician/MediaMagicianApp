@@ -1,5 +1,5 @@
 pkgname=MediaMagician
-pkgver=0.3.0
+pkgver=0.4.0
 pkgrel=1
 pkgdesc="A very cool file sharing app :)"
 arch=('x86_64')
@@ -25,7 +25,7 @@ depends=(
 )
 options=('!strip' '!emptydirs')
 source_x86_64=("${pkgname}-${pkgver}::https://github.com/Media-Magician/Apps/releases/download/v${pkgver}-beta/${pkgname}-x86_64")
-sha256sums_x86_64=('672a16221830a5010cae6eaf5582855a87c53c109f539c7707c3e8ebeb616ff4')
+sha256sums_x86_64=('03d4cbd5c5a6fa6a40b17c0c30ecb8b34d45789f21f79e0ce0c9d395f6bd6a2c')
 
 package() {
     install -Dm755 "${pkgname}-${pkgver}" "${pkgdir}/usr/bin/${pkgname}"

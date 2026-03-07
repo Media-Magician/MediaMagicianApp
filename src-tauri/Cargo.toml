@@ -1,6 +1,6 @@
 [package]
 name = "MediaMagician"
-version = "0.3.0"
+version = "0.4.0"
 description = "The media magician app"
 authors = ["VioPaige"]
 edition = "2021"

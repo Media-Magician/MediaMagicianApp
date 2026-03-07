@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=MediaMagician
-Exec=mediamagician %u
+Exec=mediamagician --no-sandbox --no-zygote --locales-dir-path=/app/bin/locales %u
 Icon=com.mediamagician.app
 Type=Application
 Categories=Network;

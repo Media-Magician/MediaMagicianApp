@@ -96,14 +96,14 @@ ENV RUSTFLAGS="-L /usr/local/lib"
 
 
 RUN npm install
-RUN cargo tauri build --debug --bundles deb,rpm
+RUN cargo tauri build --bundles deb,rpm
 
 # Copy output binary
 # RUN cp src-tauri/target/release/MediaMagician /MediaMagician
 RUN mkdir /tmp/bundle && mkdir /tmp/bundle/deb && mkdir /tmp/bundle/rpm && \
-    cp src-tauri/target/debug/MediaMagician /tmp/MediaMagician && \
-    cp -r src-tauri/target/debug/bundle/deb/* /tmp/bundle/deb && \
-    cp -r src-tauri/target/debug/bundle/rpm/* /tmp/bundle/rpm && \
+    cp src-tauri/target/release/MediaMagician /tmp/MediaMagician && \
+    cp -r src-tauri/target/release/bundle/deb/* /tmp/bundle/deb && \
+    cp -r src-tauri/target/release/bundle/rpm/* /tmp/bundle/rpm && \
     rm -rf src-tauri/target
 
 FROM scratch
