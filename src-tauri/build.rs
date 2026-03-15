@@ -4,8 +4,19 @@
 
 #![allow(non_snake_case)]
 
-#[cfg(target_os = "android")]
 fn main() {
+    let targetOs = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+
+    match targetOs.as_str() {
+        "android" => buildAndroid(),
+        "linux" => buildLinux(),
+        "windows" => buildWindows(),
+        _ => panic!("Unsupported OS: {}", targetOs),
+    }
+}
+
+// #[cfg(target_os = "android")]
+fn buildAndroid() {
     let ndkHome = std::env::var("ANDROID_NDK_HOME")
         .or_else(|_| std::env::var("ANDROID_NDK_ROOT"))
         .or_else(|_| std::env::var("NDK_HOME"))
@@ -55,8 +66,8 @@ fn main() {
     tauri_build::build();
 }
 
-#[cfg(all(target_os = "linux", target_arch = "x86_64", not(target_os = "android")))]
-fn main() {
+// #[cfg(all(target_os = "linux", target_arch = "x86_64", not(target_os = "android")))]
+fn buildLinux() {
     let ffmpegBase = std::env::var("FFMPEG_ASSET_PATH")
         .unwrap_or_else(|_| "assets/arch/x86_64".to_string());
     let ffmpegInclude = format!("{}/include", ffmpegBase);
@@ -91,8 +102,8 @@ fn main() {
     tauri_build::build();
 }
 
-#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-fn main() {
+// #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+fn buildWindows() {
     let ffmpegInclude = "C:/E/Programming/GitHub/MediaMagicianApp/src-tauri/assets/windows/x86_64/include";
     let ffmpegLib = "C:/E/Programming/GitHub/MediaMagicianApp/src-tauri/assets/windows/x86_64/lib";
 

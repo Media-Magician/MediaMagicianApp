@@ -8,8 +8,11 @@ use tauri::{Manager, Runtime};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_fs::FilePath::{self, Url};
 
-fn genericPickFile<R: Runtime>(app: &tauri::AppHandle<R>, path: Option<String>) -> Result<PickedFile, String> {
-// fn genericPickFile(app: &tauri::AppHandle, path: Option<String>) -> Result<PickedFile, String> {
+fn genericPickFile<R: Runtime>(
+    app: &tauri::AppHandle<R>,
+    // #[cfg(target_os = "android")] app: &tauri::AppHandle,
+    path: Option<String>,
+) -> Result<PickedFile, String> {
     let fPath = if path.is_some() {
         Some(FilePath::from_str(&path.unwrap()).unwrap())
     } else {
@@ -77,7 +80,12 @@ fn androidPickFile(app: tauri::AppHandle, id: String) -> Result<PickedFile, Stri
 }
 
 #[tauri::command]
-pub async fn pick_file<R: Runtime>(app: tauri::AppHandle<R>, id: String, path: Option<String>) -> Result<Video, String> {
+pub async fn pick_file<R: Runtime>(
+    app: tauri::AppHandle<R>,
+    // #[cfg(target_os = "android")] app: tauri::AppHandle,
+    id: String,
+    path: Option<String>,
+) -> Result<Video, String> {
 // pub async fn pick_file(app: tauri::AppHandle, id: String, path: Option<String>) -> Result<Video, String> {
     println!("Picking file");
 

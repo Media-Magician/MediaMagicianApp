@@ -33,6 +33,11 @@ and to bundle into single file:
 flatpak build-bundle repo MediaMagician.flatpak com.mediamagician.app
 ```
 
+To install tauri-cli from local cef version, just use
+```
+cargo install --path ~/Documents/GitHub/tauri_branch_cef/crates/tauri-cli --locked
+```
+
 ## Windows
 When building (on windows), you might need to set a clang var (batch example):
 ```

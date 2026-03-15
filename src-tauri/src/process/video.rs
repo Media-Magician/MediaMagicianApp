@@ -47,6 +47,7 @@ fn makeVideoEncoder(
 
     let alignedWidth = (width + 15) & !15;
     let alignedHeight = (height + 15) & !15;
+
     videoEncoder.set_width(alignedWidth);
     videoEncoder.set_height(alignedHeight);
 
@@ -59,6 +60,12 @@ fn makeVideoEncoder(
     {
         let videoEncoder = videoEncoder.open().map_err(|e| e.to_string())?;
         outputVideoStream.set_parameters(&videoEncoder);
+
+        unsafe {
+            let streamPtr = outputVideoStream.as_mut_ptr();
+            (*(*streamPtr).codecpar).width = width as i32;
+            (*(*streamPtr).codecpar).height = height as i32;
+        }
 
         return Ok(videoEncoder);
     }
@@ -73,6 +80,12 @@ fn makeVideoEncoder(
             .map_err(|e| e.to_string())?;
         outputVideoStream.set_parameters(&videoEncoder);
 
+        unsafe {
+            let streamPtr = outputVideoStream.as_mut_ptr();
+            (*(*streamPtr).codecpar).width = width as i32;
+            (*(*streamPtr).codecpar).height = height as i32;
+        }
+        
         println!("Video encoder setup complete.");
         return Ok(videoEncoder);
     }

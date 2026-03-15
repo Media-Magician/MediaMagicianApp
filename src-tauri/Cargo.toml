@@ -58,7 +58,7 @@ ffmpeg-sys-next = { git = "https://github.com/Media-Magician/rust-ffmpeg-sys.git
 # download-cef = { path = "/home/paige/Documents/GitHub/cef-rs/download-cef" }
 
 
-# [patch."https://github.com/tauri-apps/tauri"]
+[patch."https://github.com/tauri-apps/tauri"]
 # # tauri = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
 # # tauri-utils = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
 # # tauri-runtime = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
