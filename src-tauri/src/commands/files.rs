@@ -79,43 +79,67 @@ fn androidPickFile(app: tauri::AppHandle, id: String) -> Result<PickedFile, Stri
     })
 }
 
+#[cfg(target_os = "linux")]
 #[tauri::command]
 pub async fn pick_file<R: Runtime>(
     app: tauri::AppHandle<R>,
-    // #[cfg(target_os = "android")] app: tauri::AppHandle,
     id: String,
     path: Option<String>,
 ) -> Result<Video, String> {
-// pub async fn pick_file(app: tauri::AppHandle, id: String, path: Option<String>) -> Result<Video, String> {
+    println!("Picking file");
+        
+    let pickedFile = genericPickFile(&app, path)?;
+    let videoStats = getVideoStats(pickedFile.path.to_string())?;
+
+    return Ok(Video {
+        path: pickedFile.path,
+        name: pickedFile.name,
+        id: id,
+        stats: videoStats,
+        crf: Some(23),
+    });
+}
+
+#[cfg(all(not(target_os = "linux"), not(target_os = "android")))]
+#[tauri::command]
+pub async fn pick_file(
+    app: tauri::AppHandle,
+    id: String,
+    path: Option<String>,
+) -> Result<Video, String> {
+    println!("Picking file");
+        
+    let pickedFile = genericPickFile(&app, path)?;
+    let videoStats = getVideoStats(pickedFile.path.to_string())?;
+
+    return Ok(Video {
+        path: pickedFile.path,
+        name: pickedFile.name,
+        id: id,
+        stats: videoStats,
+        crf: Some(23),
+    });
+}
+
+#[cfg(target_os = "android")]
+#[tauri::command]
+pub async fn pick_file(
+    app: tauri::AppHandle,
+    id: String,
+    path: Option<String>,
+) -> Result<Video, String> {
     println!("Picking file");
 
-    #[cfg(target_os = "android")]
-    {
-        let pickedFile = androidPickFile(app, id.clone())?;
-        let videoStats = getVideoStats(pickedFile.path.to_string())?;
+    let pickedFile = androidPickFile(app, id.clone())?;
+    let videoStats = getVideoStats(pickedFile.path.to_string())?;
 
-        return Ok(Video {
-            path: pickedFile.path,
-            name: pickedFile.name,
-            id: id,
-            stats: videoStats,
-            crf: Some(23),
-        });
-    }
-
-    #[cfg(not(target_os = "android"))]
-    {
-        let pickedFile = genericPickFile(&app, path)?;
-        let videoStats = getVideoStats(pickedFile.path.to_string())?;
-
-        return Ok(Video {
-            path: pickedFile.path,
-            name: pickedFile.name,
-            id: id,
-            stats: videoStats,
-            crf: Some(23),
-        });
-    }
+    return Ok(Video {
+        path: pickedFile.path,
+        name: pickedFile.name,
+        id: id,
+        stats: videoStats,
+        crf: Some(23),
+    });
 }
 
 #[tauri::command]

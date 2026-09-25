@@ -1,0 +1,17 @@
+[target.aarch64-linux-android]
+linker = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+
+[profile.dev]
+debug = 1
+split-debuginfo = "packed"
+
+[env]
+# INDEPENDENT ENV VARS
+CEF_PATH = { value = "/home/paige/Documents/GitHub/cef_building/chromium_git/", force = true, relative = false }
+
+# DOCKER BUILD ENV VARS (FFMPEG_STATIC AND CARGO_FEATURE_STATIC ARE FOR BOTH DOCKER AND ARCH)
+FFMPEG_DIR = { value = "./assets/arch/x86-64", force = true, relative = true }
+PKG_CONFIG_PATH = { value = "./assets/arch/x86-64", force = true, relative = true }
+
+FFMPEG_STATIC="1"
+CARGO_FEATURE_STATIC="1"

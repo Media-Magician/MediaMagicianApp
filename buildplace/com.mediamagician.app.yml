@@ -53,6 +53,13 @@ modules:
         url: https://code.videolan.org/videolan/x264.git
         branch: stable
 
+  - name: dav1d
+    buildsystem: meson
+    sources:
+      - type: git
+        url: https://code.videolan.org/videolan/dav1d.git
+        tag: 1.4.1
+
   - name: mediamagician
     buildsystem: simple
     build-commands:

@@ -10,5 +10,5 @@ Requires:
 Requires.private: libswresample >= 5.1.100, libavutil >= 59.8.100
 Conflicts:
 Libs: -L${libdir}  -lavcodec 
-Libs.private: -pthread -lm -latomic -llzma -lx264 -lz -lva
+Libs.private: -lvpx -lm -lvpx -lm -lvpx -lm -lvpx -lm -pthread -lm -latomic -llzma -ldav1d -laom -lopus -lx264 -lx265 -lz
 Cflags: -I${includedir}

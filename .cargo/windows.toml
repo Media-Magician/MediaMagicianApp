@@ -1,0 +1,17 @@
+[target.aarch64-linux-android]
+linker = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+
+[profile.dev]
+debug = 1
+split-debuginfo = "packed"
+
+[env]
+# INDEPENDENT ENV VARS
+CEF_PATH = { value = "/home/paige/Documents/GitHub/cef_building/chromium_git/", force = true, relative = false }
+
+# WINDOWS ENV VARS
+FFMPEG_DIR = { value = "C:\\E\\Programming\\GitHub\\MediaMagicianApp\\src-tauri\\assets\\windows\\x86-64", force = true, relative = false }
+PKG_CONFIG_PATH = { value = "C:\\E\\Programming\\GitHub\\MediaMagicianApp\\src-tauri\\assets\\windows\\x86-64", force = true, relative = false }
+FFMPEG_INCLUDE_DIR = { value = "C:\\E\\Programming\\GitHub\\MediaMagicianApp\\src-tauri\\assets\\windows\\x86-64\\include", force = true, relative = false }
+FFMPEG_LIB_DIR = { value = "C:\\E\\Programming\\GitHub\\MediaMagicianApp\\src-tauri\\assets\\windows\\x86-64\\lib", force = true, relative = false }
+BINDGEN_EXTRA_CLANG_ARGS = "--target=x86_64-w64-mingw32 -isystem C:\\msys64\\mingw64\\include -isystem C:\\msys64\\mingw64\\x86_64-w64-mingw32\\include"

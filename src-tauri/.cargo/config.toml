@@ -1,76 +1,41 @@
 [target.aarch64-linux-android]
 linker = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
 
-# [profile.dev.package."*"]
-# debug = false
-
 [profile.dev]
 debug = 1
 split-debuginfo = "packed"
-
-[target.x86_64-unknown-linux-gnu]
-# runner = "env LD_LIBRARY_PATH=/home/paige/Documents/GitHub/cef_building/chromium_git/chromium/src/out/Release_GN_x64"
-runner = "env LD_LIBRARY_PATH=/home/paige/.cache/tauri-cef/cef_linux_x86_64/146.0.76"
-rustflags = ["-C", "link-arg=-Wl,-rpath,$ORIGIN"]
 
 [env]
 # INDEPENDENT ENV VARS
 CEF_PATH = { value = "/home/paige/Documents/GitHub/cef_building/chromium_git/", force = true, relative = false }
 
 # ANDROID ENV VARS
-# PATH = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin:/usr/local/bin:/usr/bin:/bin", force = true, relative = false }
+PATH = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin:/usr/local/bin:/usr/bin:/bin", force = true, relative = false }
 
-# CARGO_NDK_SYSROOT_PATH = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot", force = true, relative = false }
-# CARGO_NDK_SYSROOT_TARGET = { value = "aarch64-linux-android", force = true }
-# CARGO_NDK_SYSROOT_LIBS_PATH = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android", force = true, relative = false }
-# ANDROID_NDK_HOME = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865", force = true, relative = false }
-# ANDROID_NDK_ROOT = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/", force = true, relative = false }
-# PKG_CONFIG_ALLOW_CROSS = "1"
+CARGO_NDK_SYSROOT_PATH = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot", force = true, relative = false }
+CARGO_NDK_SYSROOT_TARGET = { value = "aarch64-linux-android", force = true }
+CARGO_NDK_SYSROOT_LIBS_PATH = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android", force = true, relative = false }
+ANDROID_NDK_HOME = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865", force = true, relative = false }
+ANDROID_NDK_ROOT = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/", force = true, relative = false }
+PKG_CONFIG_ALLOW_CROSS = "1"
 
-# CC_aarch64-linux-android = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang", force = true, relative = false }
-# CXX_aarch64-linux-android = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++", force = true, relative = false }
-# AR_aarch64-linux-android = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar", force = true, relative = false }
+CC_aarch64-linux-android = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang", force = true, relative = false }
+CXX_aarch64-linux-android = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++", force = true, relative = false }
+AR_aarch64-linux-android = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar", force = true, relative = false }
 
-# CC = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang", force = true, relative = false }
-# CXX = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++", force = true, relative = false }
-# AR = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar", force = true, relative = false }
+CC = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang", force = true, relative = false }
+CXX = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++", force = true, relative = false }
+AR = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar", force = true, relative = false }
 
-# FFMPEG_INCLUDE_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true, relative = false }
-# FFMPEG_LIB_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/lib", force = true, relative = false }
-# FFMPEG_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a", force = true, relative = false }
+FFMPEG_INCLUDE_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true, relative = false }
+FFMPEG_LIB_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/lib", force = true, relative = false }
+FFMPEG_DIR = { value = "/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a", force = true, relative = false }
 
-# # CRITICAL: Force the compiler to look in your Android FFmpeg headers FIRST
-# # Use -I (not -isystem) to give it highest priority, and --sysroot to prevent system headers
-# CFLAGS_aarch64-linux-android = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
-# CXXFLAGS_aarch64-linux-android = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
+# CRITICAL: Force the compiler to look in your Android FFmpeg headers FIRST
+# Use -I (not -isystem) to give it highest priority, and --sysroot to prevent system headers
+CFLAGS_aarch64-linux-android = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
+CXXFLAGS_aarch64-linux-android = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
 
-# # Also set generic CFLAGS (some build scripts check this instead)
-# CFLAGS = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
-# CXXFLAGS = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
-
-
-
-
-
-
-# ARCH LINUX ENV VARS
-FFMPEG_DIR = { value = "/home/paige/Documents/GitHub/ceftauritest/src-tauri/assets/arch/x86-64", force = true, relative = false }
-PKG_CONFIG_PATH = { value = "/home/paige/Documents/GitHub/ceftauritest/src-tauri/assets/arch/x86-64", force = true, relative = false }
-
-# DOCKER BUILD ENV VARS (FFMPEG_STATIC AND CARGO_FEATURE_STATIC ARE FOR BOTH DOCKER AND ARCH)
-# FFMPEG_DIR = { value = "./assets/arch/x86-64", force = true, relative = true }
-# PKG_CONFIG_PATH = { value = "./assets/arch/x86-64", force = true, relative = true }
-
-FFMPEG_STATIC="1"
-CARGO_FEATURE_STATIC="1"
-
-
-
-
-
-# WINDOWS ENV VARS
-# FFMPEG_DIR = { value = "C:\\E\\Programming\\GitHub\\MediaMagicianApp\\src-tauri\\assets\\windows\\x86-64", force = true, relative = false }
-# PKG_CONFIG_PATH = { value = "C:\\E\\Programming\\GitHub\\MediaMagicianApp\\src-tauri\\assets\\windows\\x86-64", force = true, relative = false }
-# FFMPEG_INCLUDE_DIR = { value = "C:\\E\\Programming\\GitHub\\MediaMagicianApp\\src-tauri\\assets\\windows\\x86-64\\include", force = true, relative = false }
-# FFMPEG_LIB_DIR = { value = "C:\\E\\Programming\\GitHub\\MediaMagicianApp\\src-tauri\\assets\\windows\\x86-64\\lib", force = true, relative = false }
-# BINDGEN_EXTRA_CLANG_ARGS = "--target=x86_64-w64-mingw32 -isystem C:\\msys64\\mingw64\\include -isystem C:\\msys64\\mingw64\\x86_64-w64-mingw32\\include"
+# Also set generic CFLAGS (some build scripts check this instead)
+CFLAGS = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }
+CXXFLAGS = { value = "--target=aarch64-linux-android24 --sysroot=/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/sysroot -I/home/paige/Documents/GitHub/MediaMagicianApp/src-tauri/assets/android/arm64-v8a/include", force = true }

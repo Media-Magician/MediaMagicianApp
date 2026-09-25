@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # System dependencies
 RUN apt-get update && apt-get install -y \
+    python3-pip ninja-build meson \
     libclang-dev \
     zlib1g-dev \
     xdg-utils \
@@ -57,6 +58,15 @@ RUN git clone https://code.videolan.org/videolan/x264.git /build/x264 && \
 
 RUN ls /usr/local/lib/libx264*
 
+# Build dav1d
+RUN git clone --depth 1 https://code.videolan.org/videolan/dav1d.git /build/dav1d && \
+    cd /build/dav1d && \
+    mkdir build && cd build && \
+    meson setup .. --default-library=static --buildtype=release && \
+    ninja && \
+    ninja install && \
+    ldconfig
+
 # Build FFmpeg
 WORKDIR /build/ffmpeg
 RUN autoreconf -fiv || true && \
@@ -75,11 +85,17 @@ RUN autoreconf -fiv || true && \
       --enable-protocol=file \
       --disable-network \
       --enable-libx264 \
+      --enable-libdav1d \
       --enable-gpl \
-      --extra-cflags="-fPIC" && \
+      --extra-cflags="-fPIC" \
+      --extra-ldflags="-L/usr/local/lib" && \
     make clean && \
     make -j$(nproc) && \
     make install
+
+# Verify that dav1d is correctly included in ffmpeg
+RUN nm /build/app/src-tauri/assets/ubuntu/x86_64/lib/libavcodec.a | grep ff_libdav1d_decoder || \
+    (echo "ERROR: libdav1d decoder not found in libavcodec.a" && exit 1)
 
 # Build app
 WORKDIR /build/app

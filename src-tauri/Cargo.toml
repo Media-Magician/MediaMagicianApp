@@ -17,11 +17,11 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
-
+cc = "1"
 
 [dependencies]
-tauri = { version = "2", features = ["devtools", "cef"] }
-# tauri = { version = "2", features = ["devtools"] }
+# tauri = { version = "2", features = ["devtools", "cef"] }
+tauri = { version = "2", features = ["devtools"] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -29,46 +29,12 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-deep-link = "2"
 sha2 = "0.10.9"
-ffmpeg-next = { version = "8.0.0", default-features = false, features = ["codec", "format", "filter", "software-resampling", "software-scaling"] }
+ffmpeg-next = { version = "=8.0.0", default-features = false, features = ["codec", "format", "filter", "software-resampling", "software-scaling"] }
+ffmpeg-sys-next = { version = "=8.0.1", default-features = false } # force this version to use the patched version which is a patch of 8.0.1
 libc = "0.2.182"
 
-
-[patch.crates-io]
-# tauri = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri" }
-# tauri-utils = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-utils" }
-# tauri-plugin = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-plugin" }
-tauri = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
-tauri-utils = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
-tauri-plugin = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
-
-tauri-plugin-opener = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2" }
-# tauri-plugin-opener = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/opener" }
-tauri-plugin-deep-link = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2" }
-# tauri-plugin-deep-link = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/deep-link" }
-tauri-plugin-fs = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2" }
-# tauri-plugin-fs = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/fs" }
-tauri-plugin-dialog = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2", features = ["xdg-portal"], default-features = false }
-# tauri-plugin-dialog = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/dialog" }
-
-ffmpeg-sys-next = { git = "https://github.com/Media-Magician/rust-ffmpeg-sys.git", branch = "main" }
-
-# [patch."https://github.com/Media-Magician/cef-rs.git"]
-# cef = { path = "/home/paige/Documents/GitHub/cef-rs/cef" }
-# cef-dll-sys = { path = "/home/paige/Documents/GitHub/cef-rs/sys" }
-# download-cef = { path = "/home/paige/Documents/GitHub/cef-rs/download-cef" }
-
-
-[patch."https://github.com/tauri-apps/tauri"]
-# # tauri = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
-# # tauri-utils = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
-# # tauri-runtime = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
-# # tauri-runtime-cef = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
-# # tauri-macros = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
-# tauri = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri" }
-# tauri-utils = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-utils" }
-# tauri-runtime = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-runtime" }
-# tauri-runtime-cef = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-runtime-cef" }
-# tauri-macros = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-macros" }
+[target.'cfg(target_os = "linux")'.dependencies]
+tauri = { version = "2", features = ["devtools", "cef"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }

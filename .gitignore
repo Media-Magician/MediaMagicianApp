@@ -57,4 +57,5 @@ buildplace/MediaMagician
 v8_context_snapshot.bin
 vk_swiftshader_icd.json
 cef_src/
+target/
 

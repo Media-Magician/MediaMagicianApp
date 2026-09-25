@@ -1,7 +1,9 @@
 #![allow(non_snake_case)]
 
+#[cfg(target_os = "linux")]
 use tauri::{Cef, Manager};
-// use tauri::Manager;
+#[cfg(not(target_os = "linux"))]
+use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
 
 mod structs;
@@ -12,6 +14,7 @@ mod commands {
     pub mod wrapProcess;
 }
 mod process {
+    pub mod bsf;
     pub mod video;
 }
 
@@ -26,9 +29,10 @@ use crate::{
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    #[allow(unused_mut)]
+    #[cfg(target_os = "linux")]
     let mut builder = tauri::Builder::<Cef>::default();
-    // let mut builder = tauri::Builder::default();
+    #[cfg(not(target_os = "linux"))]
+    let mut builder = tauri::Builder::default();
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {

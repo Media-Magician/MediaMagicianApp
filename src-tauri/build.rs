@@ -1,8 +1,7 @@
-// fn main() {
-//     tauri_build::build()
-// }
-
 #![allow(non_snake_case)]
+
+
+use cc;
 
 fn main() {
     let targetOs = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
@@ -63,6 +62,11 @@ fn buildAndroid() {
     println!("cargo:rustc-link-lib=dylib=swscale");
     println!("cargo:rustc-link-lib=dylib=swresample");
 
+    cc::Build::new()
+        .file("src/native/crop_bsf_shim.c")
+        .include(ffmpegInclude) // wherever your cross-compiled FFmpeg headers live
+        .compile("crop_bsf_shim");
+
     tauri_build::build();
 }
 
@@ -76,6 +80,9 @@ fn buildLinux() {
     std::env::set_var("FFMPEG_PKG_CONFIG", "0");
     println!("cargo:rustc-env=FFMPEG_INCLUDE_DIR={}", ffmpegInclude);
     println!("cargo:rustc-env=FFMPEG_LIB_DIR={}", ffmpegLib);
+
+    println!("cargo:rustc-link-search=native=/usr/local/lib");
+    println!("cargo:rustc-link-search=native=/usr/local/lib/x86_64-linux-gnu");
 
     // Statically link ffmpeg libs
     println!("cargo:rustc-link-search=native={}", ffmpegLib);
@@ -97,7 +104,17 @@ fn buildLinux() {
     println!("cargo:rustc-link-lib=dylib=vdpau");
     println!("cargo:rustc-link-lib=dylib=bz2");
     println!("cargo:rustc-link-lib=dylib=lzma");
+    
+    // formats
     println!("cargo:rustc-link-lib=dylib=x264");
+    println!("cargo:rustc-link-lib=dylib=dav1d"); // experimental dynamic in dev mode?
+    // println!("cargo:rustc-link-lib=static=dav1d"); // experimental static for docker build?
+    // println!("cargo:rustc-link-lib=dylib=x265");
+    // println!("cargo:rustc-link-lib=dylib=vpx");
+    // println!("cargo:rustc-link-lib=dylib=aom");
+
+    println!("cargo:rustc-link-arg=-Wl,--no-as-needed");
+    println!("cargo:rustc-link-arg=-Wl,--as-needed");
 
     tauri_build::build();
 }

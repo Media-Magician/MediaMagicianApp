@@ -1,4 +1,8 @@
-Local dev command:
+## General instructions for anywhere
+Since xtask system is now present, just be in the root of the project (where this file is located), and run `cargo xtask` in order to launch the project. The console will prompt you to ask about which system you want to target and whether you want dev/build mode.
+
+
+Local dev command (on linux without CEF):
 ```sh
 WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo tauri dev
 ```

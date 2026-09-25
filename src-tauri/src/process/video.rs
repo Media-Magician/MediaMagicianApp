@@ -5,8 +5,9 @@ use ffmpeg::{
 };
 use ffmpeg_next as ffmpeg;
 
-use crate::structs::{Video, VideoStats};
+use crate::{process::bsf::H264CropBsf, structs::{Video, VideoStats}};
 
+const PIXEL_ALIGNMENT: u32 = 63;
 #[cfg(target_os = "android")]
 const PIXEL_FORMAT: format::Pixel = format::Pixel::NV12;
 #[cfg(not(target_os = "android"))]
@@ -14,10 +15,79 @@ const PIXEL_FORMAT: format::Pixel = format::Pixel::YUV420P;
 
 fn findCodec() -> Option<codec::codec::Codec> {
     #[cfg(target_os = "android")]
+    println!("Found codec {}", encoder::find(codec::Id::H264).unwrap().name());
+    #[cfg(target_os = "android")]
     return encoder::find(codec::Id::H264);
 
     #[cfg(not(target_os = "android"))]
     return encoder::find_by_name("libx264");
+}
+
+fn getStreamRotation(stream: &format::stream::Stream) -> f64 {
+    unsafe {
+        let streamPtr = stream.as_ptr();
+        let mut angle: f64 = 0.0;
+
+        // Newer files: AV_PKT_DATA_DISPLAYMATRIX side data
+        let sideData = ffmpeg::ffi::av_stream_get_side_data(
+            streamPtr,
+            ffmpeg::ffi::AVPacketSideDataType::AV_PKT_DATA_DISPLAYMATRIX,
+            std::ptr::null_mut(),
+        );
+        if !sideData.is_null() {
+            angle = ffmpeg::ffi::av_display_rotation_get(sideData as *const i32);
+            if angle.is_nan() {
+                angle = 0.0;
+            }
+        } else {
+            // Older files: "rotate" metadata tag
+            let dict = (*streamPtr).metadata;
+            if !dict.is_null() {
+                let key = std::ffi::CString::new("rotate").unwrap();
+                let entry = ffmpeg::ffi::av_dict_get(dict, key.as_ptr(), std::ptr::null(), 0);
+                if !entry.is_null() {
+                    let val = std::ffi::CStr::from_ptr((*entry).value).to_str().unwrap_or("0");
+                    angle = val.parse::<f64>().unwrap_or(0.0);
+                }
+            }
+        }
+
+        // Normalize to 0/90/180/270
+        let normalized = ((-angle % 360.0) + 360.0) % 360.0;
+        normalized.round()
+    }
+}
+
+fn copyFrameIntoPadded(src: &ffmpeg::util::frame::video::Video, dst: &mut ffmpeg::util::frame::video::Video, format: format::Pixel) {
+    let planeCount = if format == format::Pixel::NV12 { 2 } else { 3 };
+    for plane in 0..planeCount {
+        // Chroma planes are half-height for both NV12 and YUV420P; NV12's chroma plane
+        // is full-width in bytes (interleaved UV), YUV420P's is half-width.
+        let (copyWidth, copyHeight) = if plane == 0 {
+            (src.width() as usize, src.height() as usize)
+        } else if format == format::Pixel::NV12 {
+            (src.width() as usize, (src.height() as usize + 1) / 2)
+        } else {
+            ((src.width() as usize + 1) / 2, (src.height() as usize + 1) / 2)
+        };
+
+        let srcStride = src.stride(plane);
+        let dstStride = dst.stride(plane);
+        let bytesPerRow = if plane == 0 || format == format::Pixel::NV12 {
+            copyWidth // NV12 chroma is 1 byte/sample interleaved, luma is 1 byte/sample
+        } else {
+            copyWidth // YUV420P chroma also 1 byte/sample
+        };
+
+        let srcData = src.data(plane);
+        let dstData = dst.data_mut(plane);
+        for row in 0..copyHeight {
+            let srcOffset = row * srcStride;
+            let dstOffset = row * dstStride;
+            dstData[dstOffset..dstOffset + bytesPerRow]
+                .copy_from_slice(&srcData[srcOffset..srcOffset + bytesPerRow]);
+        }
+    }
 }
 
 fn makeVideoEncoder(
@@ -26,6 +96,7 @@ fn makeVideoEncoder(
     height: u32,
     frameRate: Rational,
     crf: Option<u8>,
+    rotation: f64,
 ) -> Result<encoder::Video, String> {
     println!(
         "Setting up video encoder with width: {}, height: {}, frame rate: {}/{}, crf: {}",
@@ -45,11 +116,8 @@ fn makeVideoEncoder(
         .video()
         .map_err(|e| e.to_string())?;
 
-    let alignedWidth = (width + 15) & !15;
-    let alignedHeight = (height + 15) & !15;
-
-    videoEncoder.set_width(alignedWidth);
-    videoEncoder.set_height(alignedHeight);
+    videoEncoder.set_width(width);
+    videoEncoder.set_height(height);
 
     videoEncoder.set_format(PIXEL_FORMAT);
     videoEncoder.set_time_base(Rational::new(1, 90_000));
@@ -59,12 +127,24 @@ fn makeVideoEncoder(
     #[cfg(target_os = "android")]
     {
         let videoEncoder = videoEncoder.open().map_err(|e| e.to_string())?;
+        println!("Actual H: {}; W: {};", videoEncoder.height(), videoEncoder.width());
         outputVideoStream.set_parameters(&videoEncoder);
 
         unsafe {
             let streamPtr = outputVideoStream.as_mut_ptr();
             (*(*streamPtr).codecpar).width = width as i32;
             (*(*streamPtr).codecpar).height = height as i32;
+            (*(*streamPtr).codecpar).codec_tag = 0;
+
+            if rotation != 0.0 {
+                let matrixSize = std::mem::size_of::<i32>() * 9;
+                let sideData = ffmpeg::ffi::av_stream_new_side_data(
+                    streamPtr,
+                    ffmpeg::ffi::AVPacketSideDataType::AV_PKT_DATA_DISPLAYMATRIX,
+                    matrixSize,
+                );
+                ffmpeg::ffi::av_display_rotation_set(sideData as *mut i32, rotation);
+            }
         }
 
         return Ok(videoEncoder);
@@ -84,6 +164,17 @@ fn makeVideoEncoder(
             let streamPtr = outputVideoStream.as_mut_ptr();
             (*(*streamPtr).codecpar).width = width as i32;
             (*(*streamPtr).codecpar).height = height as i32;
+            (*(*streamPtr).codecpar).codec_tag = 0;
+
+            if rotation != 0.0 {
+                let matrixSize = std::mem::size_of::<i32>() * 9;
+                let sideData = ffmpeg::ffi::av_stream_new_side_data(
+                    streamPtr,
+                    ffmpeg::ffi::AVPacketSideDataType::AV_PKT_DATA_DISPLAYMATRIX,
+                    matrixSize,
+                );
+                ffmpeg::ffi::av_display_rotation_set(sideData as *mut i32, rotation);
+            }
         }
         
         println!("Video encoder setup complete.");
@@ -151,6 +242,20 @@ where
 {
     // Ensure ffmpeg is initialised
     ffmpeg::init().map_err(|e| e.to_string())?;
+    ffmpeg::util::log::set_level(ffmpeg::util::log::Level::Verbose);
+
+    let mut iter = 0u64;
+    unsafe {
+        loop {
+            let c = ffmpeg::ffi::av_codec_iterate(&mut iter as *mut u64 as *mut *mut std::ffi::c_void);
+            if c.is_null() { break; }
+            let id = (*c).id;
+            if id == codec::Id::AV1.into() {
+                let name = std::ffi::CStr::from_ptr((*c).name).to_str().unwrap_or("");
+                println!("Detected AV1-capable codec: {}", name);
+            }
+        }
+    }
 
     // Set up file access
     let mut ffIn = format::input(&input.path.to_string()).map_err(|e| e.to_string())?;
@@ -169,22 +274,39 @@ where
     let audioStreamIndex = inputAudio.as_ref().map(|s| s.index());
 
     // Set up decoders
+    // let mut videoDecoderOptions = Dictionary::new();
+    // videoDecoderOptions.set("hwaccel", "none");
+
+    // let videoCodec = codec::decoder::find(inputVideo.parameters().id())
+    //     .ok_or("No decoder found for video codec")?;
+    let videoCodec = if inputVideo.parameters().id() == codec::Id::AV1 {
+        codec::decoder::find_by_name("libdav1d")
+            .or_else(|| codec::decoder::find(inputVideo.parameters().id()))
+            .ok_or("No decoder found for video codec")?
+    } else {
+        codec::decoder::find(inputVideo.parameters().id())
+            .ok_or("No decoder found for video codec")?
+    };
     let videoContextDecoder = codec::context::Context::from_parameters(inputVideo.parameters())
         .map_err(|e| e.to_string())?;
-    let mut videoDecoder = videoContextDecoder
-        .decoder()
+    let decoderBuilder = videoContextDecoder.decoder();
+
+    // unsafe {
+    //     let ctx = decoderBuilder.as_ptr() as *mut ffmpeg::ffi::AVCodecContext;
+    //     (*ctx).hwaccel = std::ptr::null_mut();
+    //     (*ctx).hw_device_ctx = std::ptr::null_mut();
+    //     (*ctx).hwaccel_flags = 0;
+    // }
+
+    println!("Decoder name: {}, {}, {}", videoCodec.name(), inputVideo.parameters().id() == codec::Id::AV1, codec::decoder::find_by_name("libdav1d").is_some());
+    println!("Decoder description: {:?}", videoCodec.description());
+
+    let mut videoDecoder = decoderBuilder
+        .open_as(videoCodec)
+        .map_err(|e| e.to_string())?
         .video()
         .map_err(|e| e.to_string())?;
-    let mut videoScaler = scaling::context::Context::get(
-        videoDecoder.format(),
-        videoDecoder.width(),
-        videoDecoder.height(),
-        PIXEL_FORMAT,
-        input.stats.width,
-        input.stats.height,
-        scaling::flag::Flags::BILINEAR,
-    )
-    .map_err(|e| e.to_string())?;
+    let mut videoScaler: Option<scaling::context::Context> = None;
 
     let mut audioDecoder = if let Some(audioStream) = inputAudio {
         let audioContextDecoder =
@@ -200,15 +322,34 @@ where
         None
     };
 
+    println!("Opening video encoder");
+
     // Set up encoders (and audio resampler)
+    let rotation = getStreamRotation(&inputVideo);
+    let alignedWidth = (input.stats.width + PIXEL_ALIGNMENT) & !PIXEL_ALIGNMENT;
+    let alignedHeight = (input.stats.height + PIXEL_ALIGNMENT) & !PIXEL_ALIGNMENT;
+    
     let mut openedVideoEncoder = makeVideoEncoder(
         &mut ffOut,
-        input.stats.width,
-        input.stats.height,
+        alignedWidth,
+        alignedHeight,
         Rational::new(input.stats.fps as i32, 1),
         input.crf,
+        rotation,
     )
     .map_err(|e| e.to_string())?;
+
+    let cropRight = alignedWidth - input.stats.width;
+    let cropBottom = alignedHeight - input.stats.height;
+    let mut cropBsf = if cropRight > 0 || cropBottom > 0 {
+        println!("Making a crop BSF, right: {}; bottom: {};", cropRight, cropBottom);
+        Some(H264CropBsf::new(&ffOut.stream(0).unwrap().parameters(), cropRight, cropBottom)
+            .map_err(|e| e.to_string())?)
+    } else {
+        None
+    };
+
+    println!("Making audio encoder");
 
     let mut audioEncoder: Option<encoder::Audio> = None;
     let mut audioResampler: Option<resampling::Context> = None;
@@ -222,17 +363,30 @@ where
             makeAudioEncoder(&mut ffOut, &audioDecoder).map_err(|e| e.to_string())?;
     };
 
+    println!("Making muxer");
+
     // Set up muxer
     let mut muxerOptions = Dictionary::new();
     muxerOptions.set("movflags", "+faststart");
-    ffOut
-        .write_header_with(muxerOptions)
-        .map_err(|e| e.to_string())?;
+    println!("Output format: {:?}", ffOut.format().name());
+    
+
+    match ffOut.write_header_with(muxerOptions) {
+        Ok(_) => println!("Header written successfully"),
+        Err(e) => {
+            println!("write_header_with error: {}", e);
+            return Err(e.to_string());
+        }
+    }
+
+    println!("Getting video time base");
 
     let videoTimeBase = ffOut.stream(0).unwrap().time_base();
     if audioEncoder.is_some() {
         audioTimeBase = Some(ffOut.stream(1).unwrap().time_base());
     }
+
+    println!("GCalculating pts");
 
     // Variables for frame scaling (downscaling fps specifically, upscaling is pretty pointless so we do not currently support it)
     let mut nextFramePts = 0 as i64;
@@ -245,24 +399,72 @@ where
     let mut lastTimestamp: i64 = 0;
     let packets = ffIn.packets();
 
+    println!("Starting processing loop");
+    println!("Video decoder format: {:?}", videoDecoder.format());
+    println!("Video decoder width: {}", videoDecoder.width());
+    println!("Video decoder height: {}", videoDecoder.height());
+
     // Main processing loop
     let mut audioPts = 0i64;
     for (stream, mut packet) in packets {
         if stream.index() == videoStreamIndex {
+            // println!("Video packet 1");
+            // println!("Packet size: {}", packet.size());
+            // println!("Packet pts: {:?}", packet.pts());
+            // println!("Packet dts: {:?}", packet.dts());
+            // println!("Packet stream index: {}", packet.stream());
             // Read packets
             lastTimestamp = packet.pts().unwrap_or(0);
             videoDecoder
                 .send_packet(&packet)
-                .map_err(|e| e.to_string())?;
+                // .map_err(|e| e.to_string())?;
+                .map_err(|e| {
+                    println!("send_packet error: {} (os error: {:?})", e, std::io::Error::last_os_error());
+                    e.to_string()
+                })?;
+
+            // println!("Video packet 2");
 
             // Decode packets
             let mut decodedFrame = ffmpeg::util::frame::video::Video::empty();
             while videoDecoder.receive_frame(&mut decodedFrame).is_ok() {
                 // Scale resolution
-                let mut scaledFrame = ffmpeg::util::frame::video::Video::empty();
-                videoScaler
-                    .run(&decodedFrame, &mut scaledFrame)
-                    .map_err(|e| e.to_string())?;
+                // let mut scaledFrame = ffmpeg::util::frame::video::Video::new(PIXEL_FORMAT, alignedWidth, alignedHeight);
+                // let scaler = videoScaler.get_or_insert_with(|| {
+                //     scaling::context::Context::get(
+                //         decodedFrame.format(),
+                //         decodedFrame.width(),
+                //         decodedFrame.height(),
+                //         PIXEL_FORMAT,
+                //         input.stats.width,
+                //         input.stats.height,
+                //         scaling::flag::Flags::BILINEAR,
+                //     ).unwrap()
+                // });
+                // scaler
+                //     .run(&decodedFrame, &mut scaledFrame)
+                //     .map_err(|e| e.to_string())?;
+                let scaler = videoScaler.get_or_insert_with(|| {
+                    scaling::context::Context::get(
+                        decodedFrame.format(),
+                        decodedFrame.width(),
+                        decodedFrame.height(),
+                        PIXEL_FORMAT,
+                        input.stats.width,
+                        input.stats.height,
+                        scaling::flag::Flags::BILINEAR,
+                    ).unwrap()
+                });
+
+                // Step 1: scale into a tightly-sized frame (context and frame dims match)
+                let mut trueSizedFrame = ffmpeg::util::frame::video::Video::new(
+                    PIXEL_FORMAT, input.stats.width, input.stats.height,
+                );
+                scaler.run(&decodedFrame, &mut trueSizedFrame).map_err(|e| e.to_string())?;
+
+                // Step 2: copy into the padded frame that actually goes to the encoder
+                let mut scaledFrame = ffmpeg::util::frame::video::Video::new(PIXEL_FORMAT, alignedWidth, alignedHeight);
+                copyFrameIntoPadded(&trueSizedFrame, &mut scaledFrame, PIXEL_FORMAT);
 
                 // Handle timestamping frames (and occasionally skipping in case of fps downscaling)
                 let rawPts = decodedFrame.timestamp().unwrap_or(lastTimestamp);
@@ -292,6 +494,21 @@ where
                     progressCallback(progress);
                 }
 
+                println!("scaledFrame linesize: {:?}, {:?}", scaledFrame.stride(0), scaledFrame.stride(1));
+
+                // unsafe {
+                //     let framePtr = scaledFrame.as_mut_ptr();
+                //     (*framePtr).crop_right = (alignedWidth - input.stats.width) as usize;
+                //     (*framePtr).crop_bottom = (alignedHeight - input.stats.height) as usize;
+                //     (*framePtr).crop_top = 0;
+                //     (*framePtr).crop_left = 0;
+                // }
+                unsafe {
+                    let framePtr = scaledFrame.as_mut_ptr();
+                    (*framePtr).width = input.stats.width as i32;
+                    (*framePtr).height = input.stats.height as i32;
+                }
+
                 // Push processed frame to encoder
                 openedVideoEncoder
                     .send_frame(&scaledFrame)
@@ -306,6 +523,11 @@ where
             {
                 encodedPacket.set_stream(0);
                 encodedPacket.rescale_ts(openedVideoEncoder.time_base(), videoTimeBase);
+
+                if let Some(ref mut bsf) = cropBsf {
+                    bsf.filter(&mut encodedPacket).map_err(|e| e.to_string())?;
+                }
+
                 encodedPacket
                     .write_interleaved(&mut ffOut)
                     .map_err(|e| e.to_string())?;
@@ -403,10 +625,25 @@ where
     {
         encodedPacket.set_stream(0);
         encodedPacket.rescale_ts(openedVideoEncoder.time_base(), videoTimeBase);
+
+        if let Some(ref mut bsf) = cropBsf {
+            bsf.filter(&mut encodedPacket).map_err(|e| e.to_string())?;
+        }
+
         encodedPacket
             .write_interleaved(&mut ffOut)
             .map_err(|e| e.to_string())?;
     }
+
+    // // Flush remaining packets inside BSF
+    // if let Some(ref mut bsf) = bsf {
+    //     bsf.flush(
+    //         &mut ffOut,
+    //         0,
+    //         openedVideoEncoder.time_base(),
+    //         videoTimeBase,
+    //     )?;
+    // }
 
     // Close and flush audio encoder (essentially same process as regular audio encoding but without decoding or resampling more data)
     if let Some(ref mut audioEncoder) = audioEncoder {
@@ -500,6 +737,8 @@ where
     }
 
     ffOut.write_trailer().map_err(|e| e.to_string())?;
+
+    println!("Width & Height: {}x{}", alignedWidth, alignedHeight);
 
     Ok(format!(
         "Successfully transcoded {} to {}",
