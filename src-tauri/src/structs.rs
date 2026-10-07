@@ -1,3 +1,5 @@
+use std::{collections::HashMap, fs::File, sync::Mutex};
+
 use serde::{Deserialize, Serialize};
 use tauri_plugin_fs::FilePath;
 
@@ -38,3 +40,5 @@ pub struct Video {
 
     pub stats: VideoStats,
 }
+
+pub struct FileReaders(pub Mutex<HashMap<String, File>>);

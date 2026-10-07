@@ -5,7 +5,8 @@ use ffmpeg::{
 };
 use ffmpeg_next as ffmpeg;
 
-use crate::{process::bsf::H264CropBsf, structs::{Video, VideoStats}};
+use crate::structs::{Video, VideoStats};
+use crate::process::bsf::H264CropBsf;
 
 const PIXEL_ALIGNMENT: u32 = 63;
 #[cfg(target_os = "android")]

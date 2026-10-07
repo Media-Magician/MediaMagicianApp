@@ -4,12 +4,15 @@ version = 4
 
 [[package]]
 name = "MediaMagician"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
+ "base64 0.23.1",
  "cc",
  "ffmpeg-next",
  "ffmpeg-sys-next",
+ "jni",
  "libc",
+ "ndk-context",
  "serde",
  "serde_json",
  "sha2",

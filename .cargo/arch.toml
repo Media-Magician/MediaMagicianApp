@@ -12,4 +12,4 @@ CEF_PATH = { value = "/home/paige/Documents/GitHub/cef_building/chromium_git/", 
 # ARCH LINUX ENV VARS
 FFMPEG_DIR = { value = "/home/paige/Documents/GitHub/ceftauritest/src-tauri/assets/arch/x86-64", force = true, relative = false }
 PKG_CONFIG_PATH = { value = "/home/paige/Documents/GitHub/ceftauritest/src-tauri/assets/arch/x86-64", force = true, relative = false }
-LD_LIBRARY_PATH = { value = "~/.cache/tauri-cef/cef_linux_x86_64/146.0.76", force = true, relative = false }
+LD_LIBRARY_PATH = { value = "/home/paige/.cache/tauri-cef/cef_linux_x86_64/146.0.76", force = true, relative = false }

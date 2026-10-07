@@ -16,9 +16,18 @@
     "core:default",
     "core:event:default",
     "opener:default",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "/**"
+        }
+      ]
+    },
     "dialog:default",
     "fs:default",
     "fs:allow-appcache-read-recursive",
+    "fs:allow-download-write-recursive",
     "fs:allow-stat",
     "deep-link:default",
     "deep-link:allow-register"

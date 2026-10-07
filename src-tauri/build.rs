@@ -116,6 +116,11 @@ fn buildLinux() {
     println!("cargo:rustc-link-arg=-Wl,--no-as-needed");
     println!("cargo:rustc-link-arg=-Wl,--as-needed");
 
+    cc::Build::new()
+        .file("src/native/crop_bsf_shim.c")
+        .include(ffmpegInclude) // wherever your cross-compiled FFmpeg headers live
+        .compile("crop_bsf_shim");
+
     tauri_build::build();
 }
 
@@ -138,6 +143,11 @@ fn buildWindows() {
     println!("cargo:rustc-link-lib=dylib=avutil");
     println!("cargo:rustc-link-lib=dylib=swscale");
     println!("cargo:rustc-link-lib=dylib=swresample");
+
+    cc::Build::new()
+        .file("src/native/crop_bsf_shim.c")
+        .include(ffmpegInclude) // wherever your cross-compiled FFmpeg headers live
+        .compile("crop_bsf_shim");
 
     tauri_build::build();
 }
