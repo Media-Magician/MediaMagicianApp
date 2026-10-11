@@ -13,7 +13,7 @@
     ]
   },
   "permissions": [
-    "core:default",
+    "core:app:default",
     "core:event:default",
     "opener:default",
     {
@@ -28,7 +28,7 @@
     "fs:default",
     "fs:allow-appcache-read-recursive",
     "fs:allow-download-write-recursive",
-    "fs:allow-stat",
+    "allow-start-auth-listener",
     "deep-link:default",
     "deep-link:allow-register"
   ]

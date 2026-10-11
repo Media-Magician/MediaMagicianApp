@@ -6,18 +6,21 @@ resolver = "2"
 # tauri = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri" }
 # tauri-utils = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-utils" }
 # tauri-plugin = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-plugin" }
+dpi = { git = "https://github.com/tauri-apps/winit-gtk4.git", rev = "f16c3eac" }
 tauri = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
 tauri-utils = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
 tauri-plugin = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }
 
-tauri-plugin-opener = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2" }
+tauri-plugin-opener = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
+tauri-plugin-deep-link = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
+tauri-plugin-fs = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
+tauri-plugin-dialog = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm", features = ["xdg-portal"], default-features = false }
 # tauri-plugin-opener = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/opener" }
-tauri-plugin-deep-link = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2" }
 # tauri-plugin-deep-link = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/deep-link" }
-tauri-plugin-fs = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2" }
 # tauri-plugin-fs = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/fs" }
-tauri-plugin-dialog = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2", features = ["xdg-portal"], default-features = false }
 # tauri-plugin-dialog = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/dialog" }
+
+download-cef = { git = "https://github.com/Media-Magician/cef-rs.git" }
 
 # ffmpeg-sys-next = { git = "https://github.com/Media-Magician/rust-ffmpeg-sys.git", branch = "main" }
 ffmpeg-sys-next = { path = "../rust-ffmpeg-sys" }

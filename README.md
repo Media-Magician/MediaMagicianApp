@@ -19,11 +19,20 @@ When building (on linux), it is likely you will need NO_STRIP:
 NO_STRIP=true cargo tauri build
 ```
 
+Before docker build clear everything:
+```
+rm -rf target
+rm -rf src-tauri/target
+rm -rf src-tauri/gen/android/app/.cxx
+rm -rf src-tauri/gen/android/app/build
+rm -rf ~/.gradle/caches
+```
+
 Building using docker (this needs to be run in the directory above this one, and `MediaMagicianApp` and `ffmpeg` directories should be present):
 ```
 docker build -f docker-building/linux/Dockerfile -t mediamagician-builder .
 ```
-after which we can run `extract.sh` (in this project root) to extract things we need from the container into the `docker-dist` directory.
+after which we can run `extract.sh` (in this project root) to extract things we need from the container into the `docker-dist` directory. Then copy the MediaMagician (binary) to buildplace.
 We can then run the following to build the flatpak based on our `com.mediamagician.app.yml` file:
 ```
 flatpak-builder --force-clean --user --install-deps-from=flathub --repo=repo --install builddir com.mediamagician.app.yml

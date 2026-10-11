@@ -2,9 +2,10 @@
 
 use std::{collections::HashMap, sync::Mutex};
 
+// #[cfg(not(target_os = "linux"))]
+// use tauri::Manager;
 #[cfg(target_os = "linux")]
-use tauri::{Cef, Manager};
-#[cfg(not(target_os = "linux"))]
+use tauri_runtime_cef;
 use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
 
@@ -14,6 +15,7 @@ mod commands {
     pub mod digest;
     pub mod files;
     pub mod wrapProcess;
+    pub mod account;
 }
 mod process {
     pub mod bsf;
@@ -22,23 +24,32 @@ mod process {
 
 use crate::{
     commands::{
-        digest::sha256_digest, files::{pick_file, remove_file, write_to_file}, wrapProcess::process_video,
-    }, structs::FileReaders, util::cleanCacheDir,
+        digest::sha256_digest,
+        files::{pick_file, remove_file, write_to_file},
+        wrapProcess::process_video,
+        account::{start_auth_listener, AuthListenerState},
+    },
+    structs::FileReaders, util::cleanCacheDir,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "linux")]
-    let mut builder = tauri::Builder::<Cef>::default();
+    let mut builder = tauri::Builder::default().runtime(tauri_runtime_cef::Cef::default()
+        .sandbox(tauri_runtime_cef::SandboxPolicy::Disabled)
+        .command_line_arg("lang", Some("en-US"))
+        .command_line_arg("locales-dir-path", Some("/app/bin/locales")));
     #[cfg(not(target_os = "linux"))]
-    let builder = tauri::Builder::default();
+    let builder = tauri::Builder::default().runtime(tauri_runtime_wry::Wry);
+    
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let _ = app.get_webview_window("main")
                 .expect("no main window")
                 .set_focus();
-        }));
+        }))
+        .manage(AuthListenerState::default());
     }
 
     builder
@@ -69,6 +80,27 @@ pub fn run() {
 
             Ok(())
         })
+        .on_page_load(|webview, payload| {
+            use tauri::webview::PageLoadEvent;
+
+            if payload.event() != PageLoadEvent::Finished {
+                return;
+            }
+
+            let verifyUrl = payload.url();
+            if verifyUrl.path() != "/auth/magic-link/verify" {
+                return;
+            }
+
+            let Ok(callbackJsString) = serde_json::to_string(&format!("https://{}", verifyUrl.host().unwrap().to_string())) else {
+                eprintln!("Failed to encode callback url for auth");
+                return;
+            };
+
+            if let Err(error) = webview.eval(&format!("window.location.replace({});", callbackJsString)) {
+                eprintln!("Failed to redirect to dashboard. {}", error);
+            }
+        })
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -78,6 +110,7 @@ pub fn run() {
             sha256_digest,
             pick_file,
             remove_file,
+            start_auth_listener,
             write_to_file,
         ])
         .run(tauri::generate_context!())

@@ -1,10 +1,14 @@
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:24.04 AS builder
 
 # Set these depending on where these repo's are located!!
 # APP_SRC should be connected to github:Media-Magician/MediaMagicianApp
 # FFMPEG_SRC should be connected to github: Media-Magician/ffmpeg
 ARG APP_SRC=./ceftauritest
 ARG FFMPEG_SRC=./ffmpeg
+ARG CEF_SRC=./cef-rs
+ARG FFMPEG_NEXT_SRC=./rust-ffmpeg-sys
+ARG TAURI_SRC=./tauri_branch_cef
+ARG PLUGINS_SRC=./plugins_tauri_branch_cef
 ########################################
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -25,7 +29,8 @@ RUN apt-get update && apt-get install -y \
     libjavascriptcoregtk-4.1-dev \
     libwebkit2gtk-4.1-dev \
     libsoup-3.0-dev \
-    libgtk-3-dev \
+    # libgtk-3-dev \
+    libgtk-4-dev \
     libglib2.0-dev \
     libbz2-dev liblzma-dev \
     libva-dev libvdpau-dev libdrm-dev libx11-dev \
@@ -46,6 +51,12 @@ RUN cargo install tauri-cli
 # Copy sources
 COPY ${FFMPEG_SRC} /build/ffmpeg
 COPY ${APP_SRC} /build/app
+COPY ${CEF_SRC} /home/paige/Documents/GitHub/cef-rs
+COPY ${FFMPEG_NEXT_SRC} /build/rust-ffmpeg-sys
+COPY ${TAURI_SRC} /home/paige/Documents/GitHub/tauri_branch_cef
+COPY ${PLUGINS_SRC} /home/paige/Documents/GitHub/plugins_tauri_branch_cef
+
+RUN cp /build/app/.cargo/docker.toml /build/app/src-tauri/.cargo/config.toml
 
 # Add x264 source
 RUN git clone https://code.videolan.org/videolan/x264.git /build/x264 && \
@@ -100,6 +111,13 @@ RUN nm /build/app/src-tauri/assets/ubuntu/x86_64/lib/libavcodec.a | grep ff_libd
 # Build app
 WORKDIR /build/app
 
+# RUN cargo fetch --manifest-path Cargo.toml && \
+#     WINIT_FILE="$(find /root/.cargo/git/checkouts \
+#       -path '*/f16c3ea/winit-gtk4/src/event_loop.rs' -print -quit)" && \
+#     test -n "$WINIT_FILE" && \
+#     sed -i 's#gtk4::init().map_err(|err| os_error!(err))?;#gtk4::init().map_err(|err| { eprintln!("gtk4::init failed: {err:?}"); os_error!(err) })?;#' "$WINIT_FILE" && \
+#     grep -n 'gtk4::init failed' "$WINIT_FILE"
+
 # set env for build
 ENV FFMPEG_ASSET_PATH=assets/ubuntu/x86_64
 ENV FFMPEG_DIR=/build/app/src-tauri/assets/ubuntu/x86_64
@@ -110,17 +128,27 @@ ENV LIBRARY_PATH=/usr/local/lib:/build/app/cef_src
 ENV LD_LIBRARY_PATH=/usr/local/lib:/build/app/cef_src
 ENV RUSTFLAGS="-L /usr/local/lib"
 
+# RUN dpkg-query -W libgtk-4-dev \
+#     && pkg-config --modversion gtk4 \
+#     && pkg-config --variable=pcfiledir gtk4
+
+# RUN find /build /home/paige -type f \( -name "*.a" -o -name "*.so" -o -name "*.o" \) -exec sh -c 'objdump -T "$1" 2>/dev/null | grep -E "GLIBC_2\.(39|43|44)" && echo "  ===> FOUND IN: $1"' sh {} \;
 
 RUN npm install
 RUN cargo tauri build --bundles deb,rpm
 
 # Copy output binary
 # RUN cp src-tauri/target/release/MediaMagician /MediaMagician
+# RUN mkdir /tmp/bundle && mkdir /tmp/bundle/deb && mkdir /tmp/bundle/rpm && \
+#     cp src-tauri/target/release/MediaMagician /tmp/MediaMagician && \
+#     cp -r src-tauri/target/release/bundle/deb/* /tmp/bundle/deb && \
+#     cp -r src-tauri/target/release/bundle/rpm/* /tmp/bundle/rpm && \
+#     rm -rf src-tauri/target
 RUN mkdir /tmp/bundle && mkdir /tmp/bundle/deb && mkdir /tmp/bundle/rpm && \
-    cp src-tauri/target/release/MediaMagician /tmp/MediaMagician && \
-    cp -r src-tauri/target/release/bundle/deb/* /tmp/bundle/deb && \
-    cp -r src-tauri/target/release/bundle/rpm/* /tmp/bundle/rpm && \
-    rm -rf src-tauri/target
+    cp /build/app/target/release/MediaMagician /tmp/MediaMagician && \
+    cp -r /build/app/target/release/bundle/deb/* /tmp/bundle/deb && \
+    cp -r /build/app/target/release/bundle/rpm/* /tmp/bundle/rpm && \
+    rm -rf /build/app/target
 
 FROM scratch
 COPY --from=builder /tmp/MediaMagician /

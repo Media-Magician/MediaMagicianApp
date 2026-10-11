@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-start-auth-listener"
+description = "Allows starting the localhost authentication listener."
+commands.allow = ["start_auth_listener"]
