@@ -27,7 +27,7 @@ use crate::{
         digest::sha256_digest,
         files::{pick_file, remove_file, write_to_file},
         wrapProcess::process_video,
-        account::{start_auth_listener, AuthListenerState},
+        account::{start_auth_listener},
     },
     structs::FileReaders, util::cleanCacheDir,
 };
@@ -40,10 +40,12 @@ pub fn run() {
         .command_line_arg("lang", Some("en-US"))
         .command_line_arg("locales-dir-path", Some("/app/bin/locales")));
     #[cfg(not(target_os = "linux"))]
-    let builder = tauri::Builder::default().runtime(tauri_runtime_wry::Wry);
+    let mut builder = tauri::Builder::default().runtime(tauri_runtime_wry::Wry {});
     
     #[cfg(desktop)]
     {
+        use crate::commands::account::AuthListenerState;
+
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let _ = app.get_webview_window("main")
                 .expect("no main window")

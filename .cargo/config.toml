@@ -9,9 +9,6 @@ debug = 1
 split-debuginfo = "packed"
 
 [env]
-# INDEPENDENT ENV VARS
-CEF_PATH = { value = "/home/paige/Documents/GitHub/cef_building/chromium_git/", force = true, relative = false }
-
 # ARCH LINUX ENV VARS
 FFMPEG_DIR = { value = "/home/paige/Documents/GitHub/ceftauritest/src-tauri/assets/arch/x86-64", force = true, relative = false }
 PKG_CONFIG_PATH = { value = "/home/paige/Documents/GitHub/ceftauritest/src-tauri/assets/arch/x86-64", force = true, relative = false }

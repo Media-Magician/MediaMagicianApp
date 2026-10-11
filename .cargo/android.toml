@@ -6,9 +6,6 @@ debug = 1
 split-debuginfo = "packed"
 
 [env]
-# INDEPENDENT ENV VARS
-CEF_PATH = { value = "/home/paige/Documents/GitHub/cef_building/chromium_git/", force = true, relative = false }
-
 # ANDROID ENV VARS
 PATH = { value = "/home/paige/Android/Sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin:/usr/local/bin:/usr/bin:/bin", force = true, relative = false }
 
