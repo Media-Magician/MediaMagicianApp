@@ -4658,7 +4658,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-deep-link"
 version = "2.4.10"
-source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#5e1b7f937939710ca0208fd8460796b6302fd2e4"
+source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#8c087846cbe37335026bb8031dde484e86d6555b"
 dependencies = [
  "dunce",
  "plist",
@@ -4678,7 +4678,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-dialog"
 version = "2.7.3"
-source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#5e1b7f937939710ca0208fd8460796b6302fd2e4"
+source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#8c087846cbe37335026bb8031dde484e86d6555b"
 dependencies = [
  "log",
  "raw-window-handle",
@@ -4695,7 +4695,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-fs"
 version = "2.5.2"
-source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#5e1b7f937939710ca0208fd8460796b6302fd2e4"
+source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#8c087846cbe37335026bb8031dde484e86d6555b"
 dependencies = [
  "anyhow",
  "dunce",
@@ -4718,7 +4718,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-opener"
 version = "2.5.5"
-source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#5e1b7f937939710ca0208fd8460796b6302fd2e4"
+source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#8c087846cbe37335026bb8031dde484e86d6555b"
 dependencies = [
  "dunce",
  "glob",
