@@ -1,4 +1,4 @@
 [[permission]]
 identifier = "allow-start-auth-listener"
 description = "Allows starting the localhost authentication listener."
-commands.allow = ["start_auth_listener", "process_video", "sha256_digest", "pick_file", "remove_file", "write_to_file"]
+commands.allow = ["start_auth_listener", "process_video", "sha256_digest", "pick_file", "remove_file", "write_to_file", "obs_state"]

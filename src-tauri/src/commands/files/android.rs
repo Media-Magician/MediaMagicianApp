@@ -2,12 +2,13 @@ use std::io::Write;
 use std::{fs::{self, File}, str::FromStr};
 
 use crate::{
-    process::video::getVideoStats, structs::{FileReaders, PickedFile, Video},
+    process::video::getVideoStats,
+    structs::{FileReaders, PickedFile, Video},
 };
-use tauri::{Manager, State};
-use tauri_plugin_fs::FilePath::{self, Url};
 use base64::{engine::general_purpose::STANDARD, Engine as _};
+use tauri::{Manager, State};
 use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_fs::FilePath::{self, Url};
 
 use std::path::PathBuf;
 
@@ -31,6 +32,7 @@ fn genericPickFile(
 
         Ok(PickedFile {
             path: filePath,
+            id: None,
             name,
         })
     } else {
@@ -38,11 +40,15 @@ fn genericPickFile(
     }
 }
 
-fn androidPickFile(app: tauri::AppHandle, id: String) -> Result<PickedFile, String> {
+fn androidPickFile(
+    app: tauri::AppHandle,
+    reg: State<'_, VideoRegistry>,
+    id: String,
+) -> Result<PickedFile, String> {
+    use crate::structs::Progress;
     use std::io::Write;
     use tauri::Emitter;
     use tauri_plugin_fs::FsExt;
-    use crate::structs::Progress;
 
     let originalFile = genericPickFile(&app, None)?;
     let _ = app.emit(
@@ -74,8 +80,12 @@ fn androidPickFile(app: tauri::AppHandle, id: String) -> Result<PickedFile, Stri
         .flush()
         .map_err(|_| "Failed to flush copy file for processing.")?;
 
+    let id = uuid::Uuid::new_v4().to_string();
+    reg.0.lock().unwrap().insert(id.clone(), file);
+
     Ok(PickedFile {
         path: targetPath.into(),
+        id: Some(id),
         name: originalFile.name,
     })
 }
