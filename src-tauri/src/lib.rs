@@ -45,7 +45,7 @@ pub fn run() {
             .command_line_arg("lang", Some("en-US"))
             .command_line_arg("locales-dir-path", Some("/app/bin/locales")),
     );
-    #[cfg(desktop)]
+    #[cfg(target_os = "windows")]
     let mut builder = tauri::Builder::default().runtime(tauri_runtime_wry::Wry {});
     #[cfg(target_os = "android")]
     let builder = tauri::Builder::default().runtime(tauri_runtime_wry::Wry {});
