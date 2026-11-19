@@ -2,15 +2,17 @@ use std::io::Write;
 use std::{fs::{self, File}, str::FromStr};
 
 use crate::{
-    process::video::getVideoStats, structs::{FileReaders, PickedFile, Video},
+    process::video::getVideoStats,
+    structs::{FileReaders, PickedFile, Video},
 };
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use tauri::{Manager, Runtime, State};
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_fs::FilePath::{self, Url};
-use base64::{engine::general_purpose::STANDARD, Engine as _};
 
 fn genericPickFile(
     app: &tauri::AppHandle,
+    reg: State<'_, VideoRegistry>,
     path: Option<String>,
 ) -> Result<PickedFile, String> {
     let fPath = if path.is_some() {
@@ -27,8 +29,12 @@ fn genericPickFile(
                 .unwrap(),
         };
 
+        let id = uuid::Uuid::new_v4().to_string();
+        reg.0.lock().unwrap().insert(id.clone(), file);
+
         Ok(PickedFile {
             path: filePath,
+            id: Some(id),
             name,
         })
     } else {
@@ -39,12 +45,13 @@ fn genericPickFile(
 #[tauri::command]
 pub async fn pick_file(
     app: tauri::AppHandle,
+    reg: State<'_, VideoRegistry>,
     id: String,
     path: Option<String>,
 ) -> Result<Video, String> {
     println!("Picking file");
-        
-    let pickedFile = genericPickFile(&app, path)?;
+
+    let pickedFile = genericPickFile(&app, reg, path)?;
     let videoStats = getVideoStats(pickedFile.path.to_string())?;
 
     return Ok(Video {

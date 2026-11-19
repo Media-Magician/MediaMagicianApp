@@ -15,6 +15,7 @@ tauri-plugin-opener = { git = "https://github.com/Media-Magician/tauri-plugins-w
 tauri-plugin-deep-link = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
 tauri-plugin-fs = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
 tauri-plugin-dialog = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm", features = ["xdg-portal"], default-features = false }
+tauri-plugin-store = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
 # tauri-plugin-opener = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/opener" }
 # tauri-plugin-deep-link = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/deep-link" }
 # tauri-plugin-fs = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/fs" }
@@ -26,9 +27,12 @@ download-cef = { git = "https://github.com/Media-Magician/cef-rs.git" }
 ffmpeg-sys-next = { path = "../rust-ffmpeg-sys" }
 
 [patch."https://github.com/Media-Magician/cef-rs.git"]
-cef = { path = "/home/paige/Documents/GitHub/cef-rs/cef" }
-cef-dll-sys = { path = "/home/paige/Documents/GitHub/cef-rs/sys" }
-download-cef = { path = "/home/paige/Documents/GitHub/cef-rs/download-cef" }
+# cef = { path = "/home/paige/Documents/GitHub/MediaMagician/cef-rs/cef" }
+# cef-dll-sys = { path = "/home/paige/Documents/GitHub/MediaMagician/cef-rs/sys" }
+# download-cef = { path = "/home/paige/Documents/GitHub/MediaMagician/cef-rs/download-cef" }
+cef = { path = "../cef-rs/cef" }
+cef-dll-sys = { path = "../cef-rs/sys" }
+download-cef = { path = "../cef-rs/download-cef" }
 
 
 [patch."https://github.com/tauri-apps/tauri"]

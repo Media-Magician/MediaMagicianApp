@@ -5,7 +5,7 @@ use ffmpeg::{
 };
 use ffmpeg_next as ffmpeg;
 
-use crate::structs::{Video, VideoStats};
+use crate::structs::{KeepSegment, Video, VideoParts, VideoStats};
 use crate::process::bsf::H264CropBsf;
 
 const PIXEL_ALIGNMENT: u32 = 63;
@@ -22,6 +22,33 @@ fn findCodec() -> Option<codec::codec::Codec> {
 
     #[cfg(not(target_os = "android"))]
     return encoder::find_by_name("libx264");
+}
+
+pub fn buildSegments(cuts: &Option<VideoParts>) -> Vec<KeepSegment> {
+    let Some(parts) = cuts else {
+        return vec![KeepSegment { start: 0.0, end: f64::INFINITY, outStart: 0.0 }];
+    };
+
+    let mut segments = Vec::new();
+    let mut acc = 0.0;
+    for pair in parts.0.chunks(2) {
+        let start = pair[0] as f64 / 1000.0;
+        let end = pair.get(1).map(|e| *e as f64 / 1000.0).unwrap_or(f64::INFINITY);
+        if end <= start { continue; }
+
+        segments.push(KeepSegment { start, end, outStart: acc });
+        acc += end - start;
+    }
+
+    segments
+}
+
+pub fn findSegment(segments: &[KeepSegment], t: f64) -> Option<&KeepSegment> {
+    segments.iter().find(|s| t >= s.start && t < s.end)
+}
+
+pub fn toSeconds(ts: i64, tb: Rational) -> f64 {
+    ts as f64 * tb.numerator() as f64 / tb.denominator() as f64
 }
 
 fn getStreamRotation(stream: &format::stream::Stream) -> f64 {
@@ -123,7 +150,7 @@ fn makeVideoEncoder(
     videoEncoder.set_format(PIXEL_FORMAT);
     videoEncoder.set_time_base(Rational::new(1, 90_000));
     videoEncoder.set_frame_rate(Some(frameRate));
-    videoEncoder.set_gop((frameRate.numerator() / frameRate.denominator()) as u32);
+    // videoEncoder.set_gop((frameRate.numerator() / frameRate.denominator()) as u32);
 
     #[cfg(target_os = "android")]
     {
@@ -177,7 +204,7 @@ fn makeVideoEncoder(
                 ffmpeg::ffi::av_display_rotation_set(sideData as *mut i32, rotation);
             }
         }
-        
+
         println!("Video encoder setup complete.");
         return Ok(videoEncoder);
     }
@@ -274,12 +301,11 @@ where
     let inputAudio = ffIn.streams().best(media::Type::Audio);
     let audioStreamIndex = inputAudio.as_ref().map(|s| s.index());
 
-    // Set up decoders
-    // let mut videoDecoderOptions = Dictionary::new();
-    // videoDecoderOptions.set("hwaccel", "none");
+    let segments = buildSegments(&input.cuts);
+    let keepTail = segments.last().map_or(true, |s| s.end.is_infinite());
+    println!("Segments: {:#?}", segments);
 
-    // let videoCodec = codec::decoder::find(inputVideo.parameters().id())
-    //     .ok_or("No decoder found for video codec")?;
+    // Set up decoders
     let videoCodec = if inputVideo.parameters().id() == codec::Id::AV1 {
         codec::decoder::find_by_name("libdav1d")
             .or_else(|| codec::decoder::find(inputVideo.parameters().id()))
@@ -291,13 +317,6 @@ where
     let videoContextDecoder = codec::context::Context::from_parameters(inputVideo.parameters())
         .map_err(|e| e.to_string())?;
     let decoderBuilder = videoContextDecoder.decoder();
-
-    // unsafe {
-    //     let ctx = decoderBuilder.as_ptr() as *mut ffmpeg::ffi::AVCodecContext;
-    //     (*ctx).hwaccel = std::ptr::null_mut();
-    //     (*ctx).hw_device_ctx = std::ptr::null_mut();
-    //     (*ctx).hwaccel_flags = 0;
-    // }
 
     println!("Decoder name: {}, {}, {}", videoCodec.name(), inputVideo.parameters().id() == codec::Id::AV1, codec::decoder::find_by_name("libdav1d").is_some());
     println!("Decoder description: {:?}", videoCodec.description());
@@ -329,7 +348,7 @@ where
     let rotation = getStreamRotation(&inputVideo);
     let alignedWidth = (input.stats.width + PIXEL_ALIGNMENT) & !PIXEL_ALIGNMENT;
     let alignedHeight = (input.stats.height + PIXEL_ALIGNMENT) & !PIXEL_ALIGNMENT;
-    
+
     let mut openedVideoEncoder = makeVideoEncoder(
         &mut ffOut,
         alignedWidth,
@@ -370,7 +389,7 @@ where
     let mut muxerOptions = Dictionary::new();
     muxerOptions.set("movflags", "+faststart");
     println!("Output format: {:?}", ffOut.format().name());
-    
+
 
     match ffOut.write_header_with(muxerOptions) {
         Ok(_) => println!("Header written successfully"),
@@ -407,13 +426,9 @@ where
 
     // Main processing loop
     let mut audioPts = 0i64;
+    let mut audioSrcSamples: u64 = 0;
     for (stream, mut packet) in packets {
         if stream.index() == videoStreamIndex {
-            // println!("Video packet 1");
-            // println!("Packet size: {}", packet.size());
-            // println!("Packet pts: {:?}", packet.pts());
-            // println!("Packet dts: {:?}", packet.dts());
-            // println!("Packet stream index: {}", packet.stream());
             // Read packets
             lastTimestamp = packet.pts().unwrap_or(0);
             videoDecoder
@@ -429,22 +444,14 @@ where
             // Decode packets
             let mut decodedFrame = ffmpeg::util::frame::video::Video::empty();
             while videoDecoder.receive_frame(&mut decodedFrame).is_ok() {
+                // handle timestamping frames (and occasionally skipping in case of fps downscaling)
+                let rawPts = decodedFrame.timestamp().unwrap_or(lastTimestamp);
+                let srcSeconds = toSeconds(rawPts, stream.time_base());
+                let Some(seg) = findSegment(&segments, srcSeconds) else { continue };
+                let outPts = ((srcSeconds - seg.start + seg.outStart) * encoderTimeBase.denominator() as f64).round() as i64;
+                if outPts + ptsPerFrame / 2 < nextFramePts { continue; }
+
                 // Scale resolution
-                // let mut scaledFrame = ffmpeg::util::frame::video::Video::new(PIXEL_FORMAT, alignedWidth, alignedHeight);
-                // let scaler = videoScaler.get_or_insert_with(|| {
-                //     scaling::context::Context::get(
-                //         decodedFrame.format(),
-                //         decodedFrame.width(),
-                //         decodedFrame.height(),
-                //         PIXEL_FORMAT,
-                //         input.stats.width,
-                //         input.stats.height,
-                //         scaling::flag::Flags::BILINEAR,
-                //     ).unwrap()
-                // });
-                // scaler
-                //     .run(&decodedFrame, &mut scaledFrame)
-                //     .map_err(|e| e.to_string())?;
                 let scaler = videoScaler.get_or_insert_with(|| {
                     scaling::context::Context::get(
                         decodedFrame.format(),
@@ -457,23 +464,22 @@ where
                     ).unwrap()
                 });
 
-                // Step 1: scale into a tightly-sized frame (context and frame dims match)
+                // scale into right size frame (context and frame dims match)
                 let mut trueSizedFrame = ffmpeg::util::frame::video::Video::new(
                     PIXEL_FORMAT, input.stats.width, input.stats.height,
                 );
                 scaler.run(&decodedFrame, &mut trueSizedFrame).map_err(|e| e.to_string())?;
 
-                // Step 2: copy into the padded frame that actually goes to the encoder
+                // copy into padded frame that actually goes to the encoder
                 let mut scaledFrame = ffmpeg::util::frame::video::Video::new(PIXEL_FORMAT, alignedWidth, alignedHeight);
                 copyFrameIntoPadded(&trueSizedFrame, &mut scaledFrame, PIXEL_FORMAT);
 
-                // Handle timestamping frames (and occasionally skipping in case of fps downscaling)
-                let rawPts = decodedFrame.timestamp().unwrap_or(lastTimestamp);
-                let pts = rawPts.rescale(stream.time_base(), openedVideoEncoder.time_base());
+                // let pts = rawPts.rescale(stream.time_base(), openedVideoEncoder.time_base());
 
-                if pts < nextFramePts {
-                    continue;
-                }
+                // if pts < nextFramePts {
+                //     continue;
+                // }
+                //
 
                 scaledFrame.set_pts(Some(nextFramePts));
                 nextFramePts += ptsPerFrame;
@@ -497,13 +503,6 @@ where
 
                 println!("scaledFrame linesize: {:?}, {:?}", scaledFrame.stride(0), scaledFrame.stride(1));
 
-                // unsafe {
-                //     let framePtr = scaledFrame.as_mut_ptr();
-                //     (*framePtr).crop_right = (alignedWidth - input.stats.width) as usize;
-                //     (*framePtr).crop_bottom = (alignedHeight - input.stats.height) as usize;
-                //     (*framePtr).crop_top = 0;
-                //     (*framePtr).crop_left = 0;
-                // }
                 unsafe {
                     let framePtr = scaledFrame.as_mut_ptr();
                     (*framePtr).width = input.stats.width as i32;
@@ -542,6 +541,8 @@ where
                         .send_packet(&packet)
                         .map_err(|e| e.to_string())?;
 
+                    let audioTb = audioDecoder.time_base();
+
                     // Handle decoding
                     let mut decodedFrame = ffmpeg::util::frame::audio::Audio::empty();
                     while audioDecoder.receive_frame(&mut decodedFrame).is_ok() {
@@ -560,10 +561,25 @@ where
                         let data0: &[f32] = resampledFrame.plane(0);
                         let data1: &[f32] = resampledFrame.plane(1);
 
-                        // Push audio to buffer
-                        for i in 0..data0.len() {
-                            audioBuffer0.push(data0[i]);
-                            audioBuffer1.push(data1[i]);
+                        // // Push audio to buffer
+                        // for i in 0..data0.len() {
+                        //     audioBuffer0.push(data0[i]);
+                        //     audioBuffer1.push(data1[i]);
+                        // }
+                        let n = data0.len();
+                        let frameStart = match decodedFrame.pts() {
+                            Some(p) => toSeconds(p, audioTb),
+                            None => audioSrcSamples as f64 / 48000.0,
+                        };
+                        audioSrcSamples += n as u64;
+
+                        for seg in &segments {
+                            let from = ((seg.start - frameStart) * 48000.0).ceil().max(0.0) as usize;
+                            let to = (((seg.end - frameStart) * 48000.0).ceil().max(0.0) as usize).min(n);
+                            if from >= to { continue; }
+
+                            audioBuffer0.extend_from_slice(&data0[from..to]);
+                            audioBuffer1.extend_from_slice(&data1[from..to]);
                         }
                     }
 
@@ -636,16 +652,6 @@ where
             .map_err(|e| e.to_string())?;
     }
 
-    // // Flush remaining packets inside BSF
-    // if let Some(ref mut bsf) = bsf {
-    //     bsf.flush(
-    //         &mut ffOut,
-    //         0,
-    //         openedVideoEncoder.time_base(),
-    //         videoTimeBase,
-    //     )?;
-    // }
-
     // Close and flush audio encoder (essentially same process as regular audio encoding but without decoding or resampling more data)
     if let Some(ref mut audioEncoder) = audioEncoder {
         if let Some(ref mut audioResampler) = audioResampler {
@@ -653,6 +659,8 @@ where
 
             while audioResampler.flush(&mut resampledFrame).is_ok() && resampledFrame.samples() > 0
             {
+                if !keepTail { break; }
+
                 let data0: &[f32] = resampledFrame.plane(0);
                 let data1: &[f32] = resampledFrame.plane(1);
 

@@ -31,6 +31,7 @@
     "fs:allow-download-write-recursive",
     "allow-start-auth-listener",
     "deep-link:default",
-    "deep-link:allow-register"
+    "deep-link:allow-register",
+    "store:default"
   ]
 }
