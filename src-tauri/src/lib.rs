@@ -45,8 +45,11 @@ pub fn run() {
             .command_line_arg("lang", Some("en-US"))
             .command_line_arg("locales-dir-path", Some("/app/bin/locales")),
     );
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(desktop)]
     let mut builder = tauri::Builder::default().runtime(tauri_runtime_wry::Wry {});
+    #[cfg(target_os = "android")]
+    let builder = tauri::Builder::default().runtime(tauri_runtime_wry::Wry {});
+
 
     #[cfg(desktop)]
     {
@@ -96,7 +99,6 @@ pub fn run() {
 
                 let store = app.store("settings.json").map_err(|e| e.to_string())?;
                 let clipSettings = store.get("clipsettings").and_then(|v| serde_json::from_value::<ClipSettings>(v).ok()).unwrap_or_default();
-                println!("Clip settings: {:#?}", clipSettings);
 
                 let (state_tx, state_rx) = tokio::sync::watch::channel(crate::structs::ConnectionState::Disconnected);
                 app.manage(ObsState { connection: state_rx.clone() });
