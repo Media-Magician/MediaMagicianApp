@@ -27,8 +27,9 @@ pub fn serve(app: &AppHandle, req: &Request<Vec<u8>>) -> Response<Vec<u8>> {
         .map(|(s, e)| (s.parse::<u64>().unwrap_or(0), e.parse::<u64>().ok()))
         .unwrap_or((0, None));
 
-    if start >= len || (end.is_some() && start > end) { return err(StatusCode::RANGE_NOT_SATISFIABLE); }
+    if start >= len { return err(StatusCode::RANGE_NOT_SATISFIABLE); }
     let end = end.unwrap_or(u64::MAX).min(start + CHUNK - 1).min(len - 1);
+    if start > end { return err(StatusCode::RANGE_NOT_SATISFIABLE); }
 
     let mut buf = vec![0u8; (end - start + 1) as usize];
     if file.seek(SeekFrom::Start(start)).is_err() || file.read_exact(&mut buf).is_err() {

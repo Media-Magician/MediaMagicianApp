@@ -21,6 +21,8 @@ tauri-plugin-store = { git = "https://github.com/Media-Magician/tauri-plugins-wo
 # tauri-plugin-fs = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/fs" }
 # tauri-plugin-dialog = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/dialog" }
 
+wry = { git = "https://github.com/Media-Magician/wry.git", branch = "mediamagician" }
+
 download-cef = { git = "https://github.com/Media-Magician/cef-rs.git" }
 
 # ffmpeg-sys-next = { git = "https://github.com/Media-Magician/rust-ffmpeg-sys.git", branch = "main" }
@@ -33,7 +35,6 @@ ffmpeg-sys-next = { path = "../rust-ffmpeg-sys" }
 cef = { path = "../cef-rs/cef" }
 cef-dll-sys = { path = "../cef-rs/sys" }
 download-cef = { path = "../cef-rs/download-cef" }
-
 
 [patch."https://github.com/tauri-apps/tauri"]
 # # tauri = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm" }

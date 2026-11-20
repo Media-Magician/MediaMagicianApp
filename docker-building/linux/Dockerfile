@@ -3,7 +3,7 @@ FROM ubuntu:24.04 AS builder
 # Set these depending on where these repo's are located!!
 # APP_SRC should be connected to github:Media-Magician/MediaMagicianApp
 # FFMPEG_SRC should be connected to github: Media-Magician/ffmpeg
-ARG APP_SRC=./ceftauritest
+ARG APP_SRC=./App
 ARG FFMPEG_SRC=./ffmpeg
 ARG CEF_SRC=./cef-rs
 ARG FFMPEG_NEXT_SRC=./rust-ffmpeg-sys
@@ -51,7 +51,7 @@ RUN cargo install tauri-cli
 # Copy sources
 COPY ${FFMPEG_SRC} /build/ffmpeg
 COPY ${APP_SRC} /build/app
-COPY ${CEF_SRC} /home/paige/Documents/GitHub/cef-rs
+COPY ${CEF_SRC} /build/cef-rs
 COPY ${FFMPEG_NEXT_SRC} /build/rust-ffmpeg-sys
 COPY ${TAURI_SRC} /home/paige/Documents/GitHub/tauri_branch_cef
 COPY ${PLUGINS_SRC} /home/paige/Documents/GitHub/plugins_tauri_branch_cef
@@ -153,4 +153,3 @@ RUN mkdir /tmp/bundle && mkdir /tmp/bundle/deb && mkdir /tmp/bundle/rpm && \
 FROM scratch
 COPY --from=builder /tmp/MediaMagician /
 COPY --from=builder /tmp/bundle /bundle
-    
