@@ -57,7 +57,7 @@ fn androidPickFile(
             r#type: "completed".into(),
             stage: "copying".into(),
             progress: None,
-            id,
+            id: id.clone(),
         },
     );
 
@@ -80,7 +80,6 @@ fn androidPickFile(
         .flush()
         .map_err(|_| "Failed to flush copy file for processing.")?;
 
-    let id = uuid::Uuid::new_v4().to_string();
     reg.0.lock().unwrap().insert(id.clone(), FilePath::Path(targetPath.clone()));
 
     Ok(PickedFile {

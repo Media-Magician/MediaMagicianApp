@@ -7430,8 +7430,7 @@ checksum = "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc"
 [[package]]
 name = "wry"
 version = "0.56.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "375becb4aded9913f736443cf88000c6311478db69814cc06070465e4cc44c98"
+source = "git+https://github.com/Media-Magician/wry.git?branch=mediamagician#5507752ae34b00b4fbd97280d55d8482699f6aaf"
 dependencies = [
  "base64 0.22.1",
  "block2",
