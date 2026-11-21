@@ -126,8 +126,8 @@ fn buildLinux() {
 
 // #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
 fn buildWindows() {
-    let ffmpegInclude = "C:/E/Programming/GitHub/MediaMagicianApp/src-tauri/assets/windows/x86_64/include";
-    let ffmpegLib = "C:/E/Programming/GitHub/MediaMagicianApp/src-tauri/assets/windows/x86_64/lib";
+    let ffmpegInclude = "C:/E/Programming/GitHub/MediaMagicianApp/src-tauri/assets/windows/x86-64/include";
+    let ffmpegLib = "C:/E/Programming/GitHub/MediaMagicianApp/src-tauri/assets/windows/x86-64/lib";
 
     eprintln!("FFmpeg lib path: {}", ffmpegLib);
     eprintln!("Files in lib dir: {:?}", std::fs::read_dir(&ffmpegLib).map(|d| d.map(|e| e.unwrap().file_name()).collect::<Vec<_>>()));
