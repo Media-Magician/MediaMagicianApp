@@ -43,6 +43,7 @@ pub fn serve(app: &AppHandle, req: &Request<Vec<u8>>) -> Response<Vec<u8>> {
         .header(header::CONTENT_RANGE, format!("bytes {start}-{end}/{len}"))
         .header(header::CONTENT_LENGTH, buf.len())
         .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+        .header(header::ACCESS_CONTROL_EXPOSE_HEADERS, "Content-Range")
         .header(header::CACHE_CONTROL, "no-store")
         .header(header::ETAG, format!("\"{id}-{len}\""))
         .body(buf)
