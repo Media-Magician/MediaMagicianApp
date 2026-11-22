@@ -444,8 +444,23 @@ where
             // Decode packets
             let mut decodedFrame = ffmpeg::util::frame::video::Video::empty();
             while videoDecoder.receive_frame(&mut decodedFrame).is_ok() {
-                // handle timestamping frames (and occasionally skipping in case of fps downscaling)
+                // Progress report
                 let rawPts = decodedFrame.timestamp().unwrap_or(lastTimestamp);
+                processedFrames += 1;
+                if processedFrames % 30 == 0 {
+                    let currentTime = rawPts as f64 * (stream.time_base().numerator() as f64 / stream.time_base().denominator() as f64);
+                    let progress = (currentTime / duration).min(1.0);
+
+                    println!(
+                        "Processed {} frames, timestamp: {:?}, progress: {}",
+                        processedFrames,
+                        decodedFrame.timestamp(),
+                        progress
+                    );
+                    progressCallback(progress);
+                }
+
+                // handle timestamping frames (and occasionally skipping in case of fps downscaling)
                 let srcSeconds = toSeconds(rawPts, stream.time_base());
                 let Some(seg) = findSegment(&segments, srcSeconds) else { continue };
                 let outPts = ((srcSeconds - seg.start + seg.outStart) * encoderTimeBase.denominator() as f64).round() as i64;
@@ -483,23 +498,6 @@ where
 
                 scaledFrame.set_pts(Some(nextFramePts));
                 nextFramePts += ptsPerFrame;
-
-                // Progress report
-                processedFrames += 1;
-                if processedFrames % 30 == 0 {
-                    let currentTime = lastTimestamp as f64
-                        * (stream.time_base().numerator() as f64
-                            / stream.time_base().denominator() as f64);
-                    let progress = (currentTime / duration).min(1.0);
-
-                    println!(
-                        "Processed {} frames, timestamp: {:?}, progress: {}",
-                        processedFrames,
-                        decodedFrame.timestamp(),
-                        progress
-                    );
-                    progressCallback(progress);
-                }
 
                 println!("scaledFrame linesize: {:?}, {:?}", scaledFrame.stride(0), scaledFrame.stride(1));
 
