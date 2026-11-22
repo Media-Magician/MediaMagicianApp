@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, sync::Mutex};
 
-use tauri::{Manager, Emitter, async_runtime::spawn_blocking};
+use tauri::{Manager, async_runtime::spawn_blocking};
 use tauri_plugin_deep_link::DeepLinkExt;
 #[cfg(target_os = "linux")]
 use tauri_runtime_cef;
@@ -33,7 +33,7 @@ use crate::{
         files::{pick_file, remove_file, write_to_file},
         wrapProcess::process_video,
         state::obs_state,
-    }, structs::{FileReaders, ObsState, VideoRegistry}, util::cleanCacheDir, utility::servefile::serve,
+    }, structs::{FileReaders, VideoRegistry}, util::cleanCacheDir, utility::servefile::serve,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -95,7 +95,8 @@ pub fn run() {
             #[cfg(not(target_os = "android"))]
             {
                 use tauri_plugin_store::StoreExt;
-                use crate::{structs::ClipSettings, utility::obs::obsListen};
+                use tauri::Emitter;
+                use crate::{structs::{ClipSettings, ObsState}, utility::obs::obsListen};
 
                 let store = app.store("settings.json").map_err(|e| e.to_string())?;
                 let clipSettings = store.get("clipsettings").and_then(|v| serde_json::from_value::<ClipSettings>(v).ok()).unwrap_or_default();

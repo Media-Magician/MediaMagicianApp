@@ -49,8 +49,11 @@ tauri-plugin-store = "2"
 # tauri-runtime-cef = { path = "/home/paige/Documents/GitHub/tauri_branch_cef/crates/tauri-runtime-cef", features = ["devtools"] }
 tauri-runtime-cef = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm", features = ["devtools"] }
 
-[target.'cfg(target_os = "windows")'.dependencies]
+
+[target.'cfg(not(target_os = "linux"))'.dependencies]
 tauri-runtime-wry = { git = "https://github.com/Media-Magician/tauri.git", branch = "feat/cef_mm", features = ["devtools"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
 # just for pin
 winit = { git = "https://github.com/tauri-apps/winit-gtk4.git", rev = "f16c3eac" }
 

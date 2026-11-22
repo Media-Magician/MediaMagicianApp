@@ -11,7 +11,7 @@
   <launchable type="desktop-id">com.mediamagician.app.desktop</launchable>
   <url type="homepage">https://beta.mediamagician.com</url>
   <releases>
-    <release version="0.7.0" date="2026-10-09"/>
+    <release version="0.8.0" date="2026-10-09"/>
   </releases>
   <content_rating type="oars-1.1"/>
 </component>
