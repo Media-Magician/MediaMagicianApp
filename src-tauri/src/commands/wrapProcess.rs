@@ -3,15 +3,15 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use tauri::{Emitter, Manager, Runtime};
+use tauri::{Emitter, Manager, Runtime, State};
+use tauri_plugin_fs::FilePath;
 
 use crate::{
-    process::video::processVideo,
-    structs::{Notification, Progress, Video},
+    process::video::processVideo, structs::{Notification, Progress, Video, VideoRegistry},
 };
 
 #[tauri::command]
-pub async fn process_video<R: Runtime>(app: tauri::AppHandle<R>, video: Video) -> Result<String, String> {
+pub async fn process_video<R: Runtime>(app: tauri::AppHandle<R>, reg: State<'_, VideoRegistry>, video: Video) -> Result<(String, String), String> {
     println!("Processing with video info: {:#?}", video);
     let outputFilePath = PathBuf::from(&video.name);
     let outputPath = format!(
@@ -65,7 +65,7 @@ pub async fn process_video<R: Runtime>(app: tauri::AppHandle<R>, video: Video) -
 
     #[cfg(target_os = "android")] // other os operate on the actual video, not a copy, so those should not have this video deleted
     let _ = std::fs::remove_file(video.path.into_path().unwrap()).is_ok();
-    
+
     if result.is_err() {
         println!("{}", result.err().unwrap());
         return Err("Failed to process video file".into());
@@ -81,5 +81,7 @@ pub async fn process_video<R: Runtime>(app: tauri::AppHandle<R>, video: Video) -
         },
     );
 
-    return Ok(outputPath.into());
+    let id = uuid::Uuid::new_v4().to_string();
+    reg.0.lock().unwrap().insert(id.clone(), FilePath::Path(PathBuf::from(outputPath.clone())));
+    return Ok((id, outputPath));
 }
