@@ -27,6 +27,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
  "tauri-plugin-opener",
+ "tauri-plugin-process",
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
  "tauri-runtime-cef",
@@ -5466,6 +5467,15 @@ dependencies = [
  "url",
  "windows 0.61.3",
  "zbus",
+]
+
+[[package]]
+name = "tauri-plugin-process"
+version = "2.3.1"
+source = "git+https://github.com/Media-Magician/tauri-plugins-workspace.git?branch=v2_mm#8c087846cbe37335026bb8031dde484e86d6555b"
+dependencies = [
+ "tauri",
+ "tauri-plugin",
 ]
 
 [[package]]

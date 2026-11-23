@@ -104,7 +104,7 @@ pub fn run() {
                 let (state_tx, state_rx) = tokio::sync::watch::channel(crate::structs::ConnectionState::Disconnected);
                 app.manage(ObsState { connection: state_rx.clone() });
 
-                if clipSettings.enabled {
+                if clipSettings.enabled || clipSettings.recordingsEnabled.unwrap_or(false) {
                     let handle = app.handle().clone();
                     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<std::path::PathBuf>();
 
@@ -114,7 +114,7 @@ pub fn run() {
                             use std::time::{SystemTime, UNIX_EPOCH};
                             use tauri_plugin_fs::FilePath;
 
-                            let id = format!("{}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis());
+                            let id = uuid::Uuid::new_v4().to_string();
                             handle.state::<VideoRegistry>().0.lock().unwrap().insert(id.clone(), FilePath::Path(path.clone()));
 
                             let _ = handle.emit("replay-saved", (id, path.to_string_lossy().to_string()));
@@ -159,6 +159,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(FileReaders(Mutex::new(HashMap::new())))
         .manage(VideoRegistry(Mutex::new(HashMap::new())))
         .invoke_handler(tauri::generate_handler![

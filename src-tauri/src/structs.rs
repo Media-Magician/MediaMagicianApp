@@ -24,6 +24,7 @@ pub enum PromptConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClipSettings {
     pub enabled: bool,
+    pub recordingsEnabled: Option<bool>,
     pub promptConfig: PromptConfig,
     pub password: Option<String>,
     pub port: Option<u16>,
@@ -32,6 +33,7 @@ impl Default for ClipSettings {
     fn default() -> Self {
         Self {
             enabled: false,
+            recordingsEnabled: Some(false),
             promptConfig: PromptConfig::NoPrompt,
             password: None,
             port: None,

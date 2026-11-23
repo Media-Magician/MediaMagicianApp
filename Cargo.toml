@@ -16,6 +16,7 @@ tauri-plugin-deep-link = { git = "https://github.com/Media-Magician/tauri-plugin
 tauri-plugin-fs = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
 tauri-plugin-dialog = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm", features = ["xdg-portal"], default-features = false }
 tauri-plugin-store = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
+tauri-plugin-process = { git = "https://github.com/Media-Magician/tauri-plugins-workspace.git", branch = "v2_mm" }
 # tauri-plugin-opener = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/opener" }
 # tauri-plugin-deep-link = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/deep-link" }
 # tauri-plugin-fs = { path = "/home/paige/Documents/GitHub/plugins_tauri_branch_cef/plugins/fs" }

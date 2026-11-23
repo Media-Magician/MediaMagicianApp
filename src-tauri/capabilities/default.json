@@ -32,6 +32,7 @@
     "allow-start-auth-listener",
     "deep-link:default",
     "deep-link:allow-register",
-    "store:default"
+    "store:default",
+    "process:allow-restart"
   ]
 }

@@ -1,7 +1,7 @@
 use std::{path::PathBuf, time::Duration};
 
 use futures_util::StreamExt;
-use obws::{Client, events::Event};
+use obws::{Client, events::{Event, OutputState}};
 use tokio::{sync::{mpsc, watch}, time::sleep};
 
 use crate::structs::{ClipSettings, ConnectionState};
@@ -16,7 +16,17 @@ async fn listenOnce(tx: &mpsc::UnboundedSender<PathBuf>, state: &watch::Sender<C
     while let Some(event) = events.next().await {
         match event {
             Event::ReplayBufferSaved { path } => {
-                let _ = tx.send(path);
+                 if !settings.enabled { continue; }
+
+                 let _ = tx.send(path);
+            },
+            Event::RecordStateChanged { active, state, path } => {
+                if !settings.recordingsEnabled.unwrap_or(false) { continue; }
+                if state != OutputState::Stopped { continue; }
+
+                if let Some(path) = path {
+                    let _ = tx.send(PathBuf::from(path));
+                }
             },
             Event::ServerStopped => break,
             _ => {},
@@ -37,6 +47,6 @@ pub async fn obsListen(tx: mpsc::UnboundedSender<PathBuf>, state: watch::Sender<
 
         state.send_replace(ConnectionState::Disconnected);
         sleep(backoff).await;
-        backoff = (backoff * 2).min(Duration::from_secs(20));
+        backoff = (backoff * 2).min(Duration::from_secs(15));
     }
 }
