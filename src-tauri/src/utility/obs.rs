@@ -4,9 +4,9 @@ use futures_util::StreamExt;
 use obws::{Client, events::{Event, OutputState}};
 use tokio::{sync::{mpsc, watch}, time::sleep};
 
-use crate::structs::{ClipSettings, ConnectionState};
+use crate::structs::{ClipSettings, ClipType, ConnectionState};
 
-async fn listenOnce(tx: &mpsc::UnboundedSender<PathBuf>, state: &watch::Sender<ConnectionState>, settings: &ClipSettings) -> anyhow::Result<()> {
+async fn listenOnce(tx: &mpsc::UnboundedSender<(ClipType, PathBuf)>, state: &watch::Sender<ConnectionState>, settings: &ClipSettings) -> anyhow::Result<()> {
     let client = Client::connect("localhost", settings.port.unwrap_or(4455), settings.password.clone()).await?;
     let events = client.events()?;
 
@@ -18,14 +18,14 @@ async fn listenOnce(tx: &mpsc::UnboundedSender<PathBuf>, state: &watch::Sender<C
             Event::ReplayBufferSaved { path } => {
                  if !settings.enabled { continue; }
 
-                 let _ = tx.send(path);
+                 let _ = tx.send((ClipType::Clip, path));
             },
             Event::RecordStateChanged { active, state, path } => {
                 if !settings.recordingsEnabled.unwrap_or(false) { continue; }
                 if state != OutputState::Stopped { continue; }
 
                 if let Some(path) = path {
-                    let _ = tx.send(PathBuf::from(path));
+                    let _ = tx.send((ClipType::Recording, PathBuf::from(path)));
                 }
             },
             Event::ServerStopped => break,
@@ -36,7 +36,7 @@ async fn listenOnce(tx: &mpsc::UnboundedSender<PathBuf>, state: &watch::Sender<C
     Ok(())
 }
 
-pub async fn obsListen(tx: mpsc::UnboundedSender<PathBuf>, state: watch::Sender<ConnectionState>, settings: ClipSettings) {
+pub async fn obsListen(tx: mpsc::UnboundedSender<(ClipType, PathBuf)>, state: watch::Sender<ConnectionState>, settings: ClipSettings) {
     let mut backoff = Duration::from_secs(5);
 
     loop {

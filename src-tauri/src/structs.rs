@@ -10,6 +10,20 @@ pub enum ConnectionState {
     Connected,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ClipType {
+    Clip,
+    Recording,
+}
+impl std::fmt::Display for ClipType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Clip => "clip",
+            Self::Recording => "recording",
+        })
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ObsState {
     pub connection: watch::Receiver<ConnectionState>,
@@ -26,6 +40,8 @@ pub struct ClipSettings {
     pub enabled: bool,
     pub recordingsEnabled: Option<bool>,
     pub promptConfig: PromptConfig,
+    pub deleteClips: Option<bool>,
+    pub deleteRecordings: Option<bool>,
     pub password: Option<String>,
     pub port: Option<u16>,
 }
@@ -35,6 +51,8 @@ impl Default for ClipSettings {
             enabled: false,
             recordingsEnabled: Some(false),
             promptConfig: PromptConfig::NoPrompt,
+            deleteClips: Some(false),
+            deleteRecordings: Some(false),
             password: None,
             port: None,
         }

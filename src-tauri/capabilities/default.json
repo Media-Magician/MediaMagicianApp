@@ -29,7 +29,7 @@
     "fs:default",
     "fs:allow-appcache-read-recursive",
     "fs:allow-download-write-recursive",
-    "allow-start-auth-listener",
+    "allow-commands",
     "deep-link:default",
     "deep-link:allow-register",
     "store:default",

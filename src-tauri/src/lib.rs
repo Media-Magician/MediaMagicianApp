@@ -30,7 +30,7 @@ use crate::{
     commands::{
         account::start_auth_listener,
         digest::sha256_digest,
-        files::{pick_file, remove_file, write_to_file},
+        files::{pick_file, remove_file, remove_file_by_id, write_to_file},
         wrapProcess::process_video,
         state::obs_state,
     }, structs::{FileReaders, VideoRegistry}, util::cleanCacheDir, utility::servefile::serve,
@@ -105,19 +105,21 @@ pub fn run() {
                 app.manage(ObsState { connection: state_rx.clone() });
 
                 if clipSettings.enabled || clipSettings.recordingsEnabled.unwrap_or(false) {
+                    use crate::structs::ClipType;
+
                     let handle = app.handle().clone();
-                    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<std::path::PathBuf>();
+                    let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<(ClipType, std::path::PathBuf)>();
 
                     tauri::async_runtime::spawn(obsListen(tx, state_tx, clipSettings));
                     tauri::async_runtime::spawn(async move {
-                        while let Some(path) = rx.recv().await {
+                        while let Some((clipType, path)) = rx.recv().await {
                             use std::time::{SystemTime, UNIX_EPOCH};
                             use tauri_plugin_fs::FilePath;
 
                             let id = uuid::Uuid::new_v4().to_string();
                             handle.state::<VideoRegistry>().0.lock().unwrap().insert(id.clone(), FilePath::Path(path.clone()));
 
-                            let _ = handle.emit("replay-saved", (id, path.to_string_lossy().to_string()));
+                            let _ = handle.emit("replay-saved", (id, path.to_string_lossy().to_string(), clipType.to_string()));
                         }
                     });
                 }
@@ -167,6 +169,7 @@ pub fn run() {
             sha256_digest,
             pick_file,
             remove_file,
+            remove_file_by_id,
             start_auth_listener,
             write_to_file,
 

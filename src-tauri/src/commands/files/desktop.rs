@@ -68,6 +68,15 @@ pub async fn remove_file(path: FilePath) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn remove_file_by_id(reg: State<'_, VideoRegistry>, id: String) -> Result<(), String> {
+    let Some(path) = reg.0.lock().unwrap().get(&id).cloned() else { return Ok(()) }; // we just ignore deletion requests for unknown id's
+    fs::remove_file(path.into_path().unwrap()).map_err(|e| e.to_string())?;
+    reg.0.lock().unwrap().remove(&id);
+
+    Ok(())
+}
+
+#[tauri::command]
 pub fn write_to_file(
     app: tauri::AppHandle,
     code: String,
